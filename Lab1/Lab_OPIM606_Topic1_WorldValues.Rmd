@@ -1,0 +1,229 @@
+---
+title: "Topic 1 Lab"
+output: html_document
+author: Xue(Tracy) Feng
+---
+
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(plyr)
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/OPIM606_Lab1")
+```
+
+#### 1) Load the World Values Survey data from "Data/WV_small.csv" and the CountryCode data from "Data/Country codes for WVS wave 6.csv"
+
+The codebook for the World Values Survey data is available at 
+http://www.worldvaluessurvey.org/WVSDocumentationWV6.jsp
+
+The variables in WV_small were created as follows:
+
+- Satisfaction with your life from 1 (completely dissatisfied) to 10 (completely satisfied) (*V23*)
+- Income: a country-specific scale ranging from 1 (lowest income category) to 10 (highest income category) (*V239* in the dataset)
+- Education: a scale ranging from 1 (no formal education) to 9 (a degree from a university) (*V248* in the dataset)
+- Country: based on *V2* in the dataset.  See “Country codes for WVS wave 6.csv”
+- Conservatism: self-identified political conservatism from 1 (most liberal) to 10 (most conservative) (*V95* in the data set)
+- Male: a dummy variable indicating male (*V240*)
+- Religious: Indicating how often the individual attends religious services ranging from 1 (almost never) to 7 (more than once a week) (this is a re-coding of *V145* that had the polarity reversed, but is harder to interpret)
+- Marital: Marital status 1 = Married 2 = Living together as married 3 = Divorced 4 = Separated 5 = Widowed 6 = Single
+- Survey year: year survey taken
+- Birth year: respondents's year of birth
+
+```{r theadidy = FALSE}
+# read data
+countryCodes <- read_csv("Country codes for WVS wave 6.csv")
+wv <- read_csv("WV_small.csv")
+
+# # global variables
+# BrazilData <- wv %>%
+#   filter(Country == "76")
+# 
+# RussiaData <- wv %>%
+#   filter(Country == "643")
+# 
+# USData <- wv %>%
+#   filter(Country == "840")
+```
+
+
+#### 2) What are the country codes for Brazil, Russia and the United States?
+
+```{r tidy = FALSE}
+# solution1
+countryCodes[countryCodes$country == "Brazil", ]
+countryCodes[countryCodes$country == "Russia", ]
+countryCodes[countryCodes$country == "United States", ]
+
+# solution2: Use dplyr
+countryCodesAnswer <- countryCodes %>%
+  filter(country == "Brazil" | country == "Russia" | country == "United States")
+countryCodesAnswer
+
+```
+
+#### 3) Create three dummy variables: one for observations from Brazil, one for observations from Russia and one for observations from the U.S. What types of variables are these?  How many observations are from each country?
+
+```{r tidy = FALSE}
+# dummy variables
+wv$BrazilDummy <- ifelse(wv$Country == "76", 1, 0)
+wv$RussiaDummy <- ifelse(wv$Country == "643", 1, 0)
+wv$UnitedStatesDummy <- ifelse(wv$Country == "840", 1, 0)
+
+# type
+typeof(wv$BrazilDummy)
+typeof(wv$RussiaDummy)
+typeof(wv$UnitedStatesDummy)
+
+# number of observations
+sum(wv$BrazilDummy)
+sum(wv$RussiaDummy)
+sum(wv$UnitedStatesDummy)
+
+```
+
+#### 4)	Convert the BirthYear variable into age.  Check for data errors.  What is the average age of all observations in the data set?  The minimum and maximum?
+
+```{r}
+
+# current year using 2021
+# curYear <- as.numeric(format(Sys.Date(), "%Y"))
+
+# convert Birthyear into age
+wv <- wv %>%
+  mutate(age = SurveyYear - BirthYear)
+```
+
+```{r}
+
+# check for age data error
+table(is.na(wv$age))
+
+# average age, min age, max age
+wv %>%
+  summarize(meanAge = mean(age, na.rm = TRUE),
+          minAge = min(age, na.rm = TRUE),
+          maxAge = max(age, na.rm = TRUE))
+
+```
+
+#### 5)	What are the average ages of observations from Brazil, Russia and the U.S.?
+
+```{r}
+
+# solution 1
+# ave age of Brazil
+BrazilData <- wv %>%
+  filter(Country == "76")
+mean(BrazilData$age, na.rm = TRUE)
+
+# ave age of Russia
+RussiaData <- wv %>%
+  filter(Country == "643")
+mean(RussiaData$age, na.rm = TRUE)
+
+# ave age of U.S.
+USData <- wv %>%
+  filter(Country == "840")
+mean(USData$age, na.rm = TRUE)
+
+```
+
+```{r}
+# #Solution 2
+# wv %>% filter(Country == "76" | Country == "643" | Country == "840") %>% group_by(Country) %>% summarise(avg = mean(age))
+```
+
+
+
+#### 6)	What is the distribution of the gender variable.  Compare across the three countries above.
+
+```{r}
+
+# combine two sheets (wv and CountryCodes) together
+wv_Joint <- left_join(wv, countryCodes, by = c("Country" = "V2"))
+
+# get subdata that contains only Braizil, Russia, United States data
+wv2 <- subset(wv_Joint, country == "Brazil" | country == "Russia" | country == "United States")
+
+# Female Brazil
+femailBrazil <- wv2 %>%
+  filter(country == "Brazil" & Male == "0") %>%
+  NROW()
+# Female Russia
+femailRussia <- wv2 %>%
+  filter(country == "Russia" & Male == "0") %>%
+  NROW()
+# Female United States
+femaleUS <- wv2 %>%
+  filter(country == "United States" & Male == "0") %>%
+  NROW()
+
+# Male Brazil
+maleBrazil <- wv2 %>%
+  filter(country == "Brazil" & Male == "1") %>%
+  NROW()
+# Male Russia
+maleRussia <- wv2 %>%
+  filter(country == "Russia" & Male == "1") %>%
+  NROW()
+# Male United States
+maleUS <- wv2 %>%
+  filter(country == "United States" & Male == "1") %>%
+  NROW()
+
+# Table
+# Create matrix with 3 colums
+table <- matrix(c(femailBrazil, femailRussia, femaleUS, maleBrazil, maleRussia, maleUS), ncol = 3, byrow = TRUE)
+
+# define column and row names of matrix
+colnames(table) <- c("Brazil", "Russia", "United States")
+rownames(table) <- c("Female", "Male")
+table
+
+# Distribution 
+wv2$Male = factor(wv2$Male)
+wv2$Male = revalue(wv2$Male, c("0" = "Female", "1" = "Male"))
+
+ggplot(data = wv2, mapping = aes(x = Male, fill = Male, na.rm = TRUE)) +
+  geom_bar(color = "black", width = .3) +
+  facet_wrap(~country)
+
+```
+
+#### 7)	What is the distribution of the education variable?  Compare for each of the three countries.  Calculate as percentages.
+
+```{r tidy = FALSE}
+
+prop.table(table(wv2$Education,wv2$country), margin = 2) *100
+
+ggplot(data = wv2, mapping = aes(x = Education, fill = country)) +
+  geom_bar() +
+  facet_wrap(~country)
+
+```
+
+#### 8)	Create an object that contains only the data for observations from Brazil.  What are the dimensions of this data object?
+
+```{r tidy = FALSE}
+
+wv_Joint <- left_join(wv, countryCodes, by = c("Country" = "V2"))
+wvBrazil <- subset(wv_Joint, Country == "76")
+dim(wvBrazil)
+
+```
+
+#### Bonus: calculate the mean for every column in the data set
+
+```{r tidy = FALSE}
+
+wv %>% 
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+
+```
+
