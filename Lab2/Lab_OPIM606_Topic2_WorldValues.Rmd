@@ -1,7 +1,7 @@
 ---
 title: "Topic 2 Lab"
 output: html_document
-author: Insert Your Name Here
+author: Xue(Tracy) Feng
 ---
 
 ## Preparation
@@ -13,7 +13,7 @@ library(knitr)
 library(dplyr)
 
 # As needed, set path to folder where data is located.
-opts_knit$set(root.dir = "C:/Users/baileyma/Dropbox/Teaching_drop/OPIM606")
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/OPIM606_Lab2")
 ```
 
 
@@ -35,32 +35,62 @@ The variables in WV_small include
 - Survey year: year survey taken
 - Birth year: respondents's year of birth
 
-
-```{r tidy = FALSE}
-
-```
-
 #### **After** creating the WV and CountryCode data objects, implement the following to create a list of countries in the WV data.  (We'll cover what this code means later in data wrangling.)  Look at this data object to understand it.  It will be useful in the last question below.
 
 ```{r }
 # Load country code data
-CountryCode = read.csv("Data/Country codes for WVS wave 6.csv")
-WV = read.csv("Data/WV_small.csv")
+countryCode = read_csv("Country codes for WVS wave 6.csv")
+wv = read_csv("WV_small.csv")
 
-wvCountries =  CountryCode %>% 
+# age variable
+wv <- wv %>%
+  mutate(age = SurveyYear - BirthYear)
+
+wvCountries =  countryCode %>% 
   filter(V2>0) %>%
-  filter(V2 %in% unique(WV$Country)) %>%
+  filter(V2 %in% unique(wv$Country)) %>%
   filter(V2 != 332)
 ```
 
 #### 2) Create a list that contains a country name, the average satisfaction in that country and the observations for Mexico.
 
 ```{r tidy = FALSE}
+
+# function to get country code
+getCountryCode <- function(name) {
+  for(i in 1:NROW(countryCode$country)) {
+    if (name == countryCode$country[i]) {
+      return (countryCode$V2[i])
+    }
+  }
+}
+
+# create a country name
+mexName <- c("Mexico")
+
+# create ave satisfaction
+mexCode <- getCountryCode("Mexico")
+aveSatisfaction <- mean(wv %>%
+                          filter(Country == mexCode) %>%
+                          pull(Satisfied))
+
+# observations for Mexico
+mexObs <- wv %>%
+  filter(wv$Country == mexCode)
+
+# create list containing all the observations for Mexico
+mexList = list(countryName = mexName, Satisfaction = aveSatisfaction, observations = mexObs)
+
+# display list
+mexList
+
+
 ```
 
 #### 3) Estimate a model predicting *DemocracyBad* (whether someone thinks democracy is bad) and save it as OLS.1.  Briefly explain the structure of this object. What is OLS.1[[1]]?
 
 ```{r tidy = FALSE}
+
 ```
 #### 4) Loop thru all countries in the World Values survey to assess the bivariate relationship between opposition to democracy and age. Save coefficient and t-statistic for each country.
 
