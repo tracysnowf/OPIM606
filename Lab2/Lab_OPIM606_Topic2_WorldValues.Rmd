@@ -12,9 +12,10 @@ library(tidyverse)
 library(knitr)
 library(dplyr)
 library(hash)
+library(plyr)
 
 # As needed, set path to folder where data is located.
-opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/OPIM606_Lab2")
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/Lab2")
 ```
 
 
@@ -83,8 +84,7 @@ mexObs <- wv %>%
 mexList = list(countryName = mexName, Satisfaction = aveSatisfaction, observations = mexObs)
 
 # display list
-mexList
-
+head(mexList)
 ```
 
 #### 3) Estimate a model predicting *DemocracyBad* (whether someone thinks democracy is bad) as a function of age and save it as OLS.1.  Briefly explain the structure of this object. What is OLS.1[[1]]?
@@ -112,7 +112,7 @@ OLS.1[[1]]
 wv2 <- wv %>%
   select(Country, DemocracyBad, age)
 
-# create a hash to store country info. key: country code, value: country name
+# create a hash to store country info (that only exist in wv). key: country code, value: country name
 countryInfo <- hash()
 for (i in 1:NROW(countryCode)) {
   if(as.character(countryCode$V2[i]) %in% wv$Country) {
@@ -122,31 +122,38 @@ for (i in 1:NROW(countryCode)) {
 
 # create a data frame to store the result
 resultDf <- matrix(NA, length(unique(wv$Country)), 4)
+colnames(resultDf) <- c("Country Code", "Country", "Coefficient", "T-statistic")
+
+# resultDf <- data.frame(code = character(), country = character(), coeff = double(), tstat = double())
 
 # loop through all countries for democracy vs age using wv2
+i = 0
 for (code in keys(countryInfo))  {
+  i = i + 1
   # create a df for the current country
   curCountryDf <- wv2 %>%
     filter(as.character(Country) == as.character(code)) %>%
     select(DemocracyBad, age)
   # the bivariate relationship between opposition to democracy and age
-  # x <- as.numeric(curCountryDf$DemocracyBad, na.rm=TRUE)
-  # y <- as.numeric(curCountryDf$age, na.rm=TRUE)
-  # if (is.na(x[1]) | is.na(y[1])) {
-  #   cat("*****NULL Value - Country Name: ", countryInfo[[code]], "\n")
-  #   rbind(resultDf, c(code, countryInfo[[code]], "NA", "NA"))
-  #   next
-  # }
-  curCountryFit <- lm(
-    formula = (x ~ y),
-    data = curCountryDf
-  )
-  summary(curCountryFit)
-  coeff <- summary(curCountryFit)$coefficients[2,1]
-  tstat <- summary(curCountryFit)$coefficients[2,3]
+  if (code == 634) {
+    coeff <- NA
+    tstat <- NA
+    # result = data.frame(code, countryInfo[[code]], NA , NA)
+  } else {
+    curCountryFit <- lm(
+    formula = (DemocracyBad ~ age),
+    data = curCountryDf,
+    na.action = na.exclude
+    )
+    coeff <- summary(curCountryFit)$coefficients[2,1]
+    tstat <- summary(curCountryFit)$coefficients[2,3]
+    # result = data.frame(code, countryInfo[[code]], coeff, tstat)
+    # print(result)
+  }
+  
   # store the current result
-  # cat(code, countryInfo[[code]], coeff, tstat, "\n")
-  rbind(resultDf, c(code, countryInfo[[code]], coeff, tstat))
+  # resultDf <- rbind(resultDf, result)
+  resultDf[i, ] <- c(code, countryInfo[[code]], coeff, tstat)
 }
 
 # display the result
@@ -165,15 +172,68 @@ Recall that the answer categories are:
 
 ```{r}
 
-# use countryInfo(code, name) hash from Q4
-# row: #countries, col: proportion of each rating
-numRow <- length(unique(countryCode$country))
-numCol <- 4
+# merge wv and countryCode -> wvJoint
+wvJoint <- left_join(wv, countryCode, by = c("Country" = "V2"))
 
+# create a df to store result
+resultDf2 <- data.frame(NA)
+
+# calculate proportion and store all the results in resultDf2
+for (code in keys(countryInfo)) {
+  if (code == 634) {
+    next
+  }
+  # create a df for the current country
+  curCountryDf <- wvJoint %>%
+    filter(as.character(Country) == as.character(code)) %>%
+    select(Country, DemocracyBad)
+  # store current result
+  curTable <- prop.table(table(wvJoint$DemocracyBad, wvJoint$country), margin = 2) * 100
+  # add current result to result
+  resultDf2 <- cbind(curTable)
+}
+
+# function that prints a table with response percent for each answer for *DemocracyBad* question for any country
+getResponsePercent <- function(countryName) {
+  for (name in colnames(resultDf2)) {
+    if (name == countryName) {
+      print(resultDf2[, name, drop = FALSE])
+    }
+  }
+}
+
+# test: United States
+getResponsePercent("United States")
+
+cat("\n")
+
+# test: China
+getResponsePercent("China")
 
 ```
 
 #### 6) Create a list with regression results for an OLS model explaining *DemocracyBad* as a function of age, income, education and male.  Be able to print results by country name.
 
 ```{r}
+
+countryNames <- unique(wvJoint$country)
+countryNames <- subset(countryNames, countryNames != "Qatar")
+
+# print(wv[wv$Country == 233, ])
+
+getFit <- function(name) {
+  subsetCountry <- subset(wvJoint, country == name)
+  curFit <- lm(
+    formula = (DemocracyBad ~ age + Income + Education + Male),
+    # data = wvJoint[name == wvJoint$Country, ]
+    data = subsetCountry
+    )
+  summary(curFit)
+}
+
+listRes <- sapply(countryNames, getFit)
+
+# test: United States
+listRes[["United States"]]
+
 ```
