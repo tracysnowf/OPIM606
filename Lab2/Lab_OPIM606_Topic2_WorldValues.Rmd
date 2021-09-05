@@ -219,19 +219,12 @@ getResponsePercent("China")
 countryNames <- unique(wvJoint$country)
 countryNames <- subset(countryNames, countryNames != "Qatar")
 
-# print(wv[wv$Country == 233, ])
-
-getFit <- function(name) {
-  subsetCountry <- subset(wvJoint, country == name)
-  curFit <- lm(
+listRes <- sapply(countryNames, function(name) {
+  summary(lm(
     formula = (DemocracyBad ~ age + Income + Education + Male),
-    # data = wvJoint[name == wvJoint$Country, ]
-    data = subsetCountry
-    )
-  summary(curFit)
-}
-
-listRes <- sapply(countryNames, getFit)
+    data = wvJoint[name == wvJoint$country, ]
+  ))
+})
 
 # test: United States
 listRes[["United States"]]

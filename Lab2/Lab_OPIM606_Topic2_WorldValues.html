@@ -548,26 +548,19 @@ getResponsePercent(&quot;China&quot;)</code></pre>
 <pre class="r"><code>countryNames &lt;- unique(wvJoint$country)
 countryNames &lt;- subset(countryNames, countryNames != &quot;Qatar&quot;)
 
-# print(wv[wv$Country == 233, ])
-
-getFit &lt;- function(name) {
-  subsetCountry &lt;- subset(wvJoint, country == name)
-  curFit &lt;- lm(
+listRes &lt;- sapply(countryNames, function(name) {
+  summary(lm(
     formula = (DemocracyBad ~ age + Income + Education + Male),
-    # data = wvJoint[name == wvJoint$Country, ]
-    data = subsetCountry
-    )
-  summary(curFit)
-}
-
-listRes &lt;- sapply(countryNames, getFit)
+    data = wvJoint[name == wvJoint$country, ]
+  ))
+})
 
 # test: United States
 listRes[[&quot;United States&quot;]]</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = (DemocracyBad ~ age + Income + Education + Male), 
-##     data = subsetCountry)
+##     data = wvJoint[name == wvJoint$country, ])
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
