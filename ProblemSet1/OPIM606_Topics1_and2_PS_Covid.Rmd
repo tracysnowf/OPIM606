@@ -43,7 +43,7 @@ c_original = read_csv("Covid_by_state_week.csv")
 
 # add 'pos.pct'
 c_original <- c_original %>%
-  mutate(pos.pct = positives / (positives + negatives))
+  mutate(pos.pct = positives / (positives + negatives) * 100)
 print(c_original)
 ```
 
@@ -52,13 +52,22 @@ print(c_original)
 ```{r tidy = FALSE}
 
 # deaths
-print(summary(c_original$deaths))
+summarise(c_original,
+          mean = mean(deaths),
+          min = min(deaths),
+          max = max(deaths))
 
 # positives
-print(summary(c_original$positives))
+summarise(c_original,
+          mean = mean(positives),
+          min = min(positives),
+          max = max(positives))
 
 # pos.pct
-print(summary(c_original$pos.pct))
+summarise(c_original,
+          mean = mean(pos.pct),
+          min = min(pos.pct),
+          max = max(pos.pct))
 
 # The data is NOT fully informative.
 # reason 1: the invalid/ negative values will affect the accuracy of the minimum, mean, quantiles, and pos.pct
@@ -78,7 +87,7 @@ negDeath <- function() {
 }
 negDeath()
 
-# for the negative value of death count, we should treat it as an outlier, since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.
+# for the negative value of death count, we should treat it as an outlier since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.
 ```
 
 #### 5)  Set all non-sensical negative values to missing.  Report on descriptive stistics again.  Are there any more anamolies to fix?
@@ -89,17 +98,25 @@ c <- c_original %>%
   mutate(deaths = ifelse(deaths < 0, NA, deaths)) %>%
   mutate(positives = ifelse(positives < 0, NA, positives)) %>%
   mutate(negatives = ifelse(negatives < 0, NA, negatives)) %>%
-  # ?????
-  mutate(pos.pct = ifelse(pos.pct < 0, NA, positives / (positives + negatives)))
+  mutate(pos.pct = ifelse(pos.pct < 0, NA, positives / (positives + negatives) * 100))
 
 # deaths
-print(summary(c$deaths))
+summarise(c,
+          mean = mean(deaths, na.rm = TRUE),
+          min = min(deaths, na.rm = TRUE),
+          max = max(deaths, na.rm = TRUE))
 
 # positives
-print(summary(c$positives))
+summarise(c,
+          mean = mean(positives, na.rm = TRUE),
+          min = min(positives, na.rm = TRUE),
+          max = max(positives, na.rm = TRUE))
 
 # pos.pct
-print(summary(c$pos.pct))
+summarise(c,
+          mean = mean(pos.pct, na.rm = TRUE),
+          min = min(pos.pct, na.rm = TRUE),
+          max = max(pos.pct, na.rm = TRUE))
 
 # sknewness, the data is highly skewed to the right
 c %>%
@@ -167,7 +184,7 @@ getCaseCount("VA")
 getDataObj <- function() {
   resObj = list()
   i = 1
-  while (i < 120) {
+  while (i < NROW(c)) {
     curDate <- c$friday[i]
     curInfo <- c %>%
       filter(friday == curDate) %>%
@@ -179,40 +196,16 @@ getDataObj <- function() {
     curTotal <- sum(curInfo2$positives)
     
     # curRes = list(as.character(curDate), curInfo$state, curInfo$positives, as.integer(curTotal))
-    curRes = list(as.character(curDate), curInfo, as.integer(curTotal))
-    print(curRes)
+    
+    curRes = list(Date = as.character(curDate), Info = curInfo, Total = as.integer(curTotal))
     resObj <- append(resObj, curRes)
     i = i + curCount
   }
   return(resObj)
 }
 
-# print(getDataObj())
-# 
-# # get total object
-# getTotalObj <- function() {
-#   totalObj = data.frame()
-#   i = 1
-#   while (i < NROW(c)) {
-#     curDate = c$friday[i]
-#     curDf <- c %>%
-#       filter(friday == curDate)
-#     curCount <- NROW(curDf)
-#     curTotal <- sum(curDf$positives)
-#     curRes <- data.frame(Date = as.character(curDate), Total = as.integer(curTotal))
-#     totalObj <- rbind(totalObj, curRes)
-#     i <- i + curCount
-#   }
-#   return(na.omit(totalObj))
-# }
-
-# store two objects into the result list
-resultList <- list(getDataObj(), getTotalObj())
-
-# print(resultList[[1]][1])
-
-# print(getTotalObj())
-
+resObj = getDataObj()
+print(head(resObj))
 
 ```
 

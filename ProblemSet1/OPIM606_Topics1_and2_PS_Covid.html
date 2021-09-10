@@ -175,9 +175,9 @@ pre code {
 <pre class="r"><code># Load packages used in this session of R
 library(tidyverse)
 library(knitr)
-library(ggplot2)
 library(moments)
 library(formattable)
+library(hash)
 
 # As needed, set path to folder where data is located.
 opts_knit$set(root.dir = &quot;C:/Users/Xue Feng/Desktop/OPIM606/ProblemSet1&quot;)</code></pre>
@@ -209,38 +209,53 @@ c_original = read_csv(&quot;Covid_by_state_week.csv&quot;)</code></pre>
 <h4>2) Add a variable to your data frame called `pos.pct’ that is the percent of tests that were positive in the week</h4>
 <pre class="r"><code># add &#39;pos.pct&#39;
 c_original &lt;- c_original %&gt;%
-  mutate(pos.pct = positives / (positives + negatives))
+  mutate(pos.pct = positives / (positives + negatives) * 100)
 print(c_original)</code></pre>
 <pre><code>## # A tibble: 1,470 x 7
 ##     ...1 state friday     deaths positives negatives pos.pct
 ##    &lt;dbl&gt; &lt;chr&gt; &lt;date&gt;      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
-##  1     1 AK    2020-10-16      6      1400     28194  0.0473
-##  2     2 AL    2020-10-16    133      6909     38906  0.151 
-##  3     3 AR    2020-10-16    162      7394     80235  0.0844
-##  4     4 AZ    2020-10-16     60      5402     60783  0.0816
-##  5     5 CA    2020-10-16    402     22870    862589  0.0258
-##  6     6 CO    2020-10-16     32      6133     59752  0.0931
-##  7     7 CT    2020-10-16     12      2792    168302  0.0163
-##  8     8 DC    2020-10-16      7       412     33150  0.0123
-##  9     9 DE    2020-10-16     11       897     15878  0.0535
-## 10    10 FL    2020-10-16    658     19516    136007  0.125 
+##  1     1 AK    2020-10-16      6      1400     28194    4.73
+##  2     2 AL    2020-10-16    133      6909     38906   15.1 
+##  3     3 AR    2020-10-16    162      7394     80235    8.44
+##  4     4 AZ    2020-10-16     60      5402     60783    8.16
+##  5     5 CA    2020-10-16    402     22870    862589    2.58
+##  6     6 CO    2020-10-16     32      6133     59752    9.31
+##  7     7 CT    2020-10-16     12      2792    168302    1.63
+##  8     8 DC    2020-10-16      7       412     33150    1.23
+##  9     9 DE    2020-10-16     11       897     15878    5.35
+## 10    10 FL    2020-10-16    658     19516    136007   12.5 
 ## # ... with 1,460 more rows</code></pre>
 </div>
 <div id="calculate-the-descriptive-statistics-mean-min-max-for-the-entire-data-set-for-the-deaths-positive-and-pos.pct-variables.-are-these-quantities-informative-why-or-why-not" class="section level4">
 <h4>3) Calculate the descriptive statistics (mean, min, max) for the entire data set for the deaths, positive and pos.pct variables. Are these quantities informative? Why or why not?</h4>
 <pre class="r"><code># deaths
-print(summary(c_original$deaths))</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   -29.0    16.0    53.5   140.5   131.8  4978.0</code></pre>
+summarise(c_original,
+          mean = mean(deaths),
+          min = min(deaths),
+          max = max(deaths))</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    mean   min   max
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1  141.   -29  4978</code></pre>
 <pre class="r"><code># positives
-print(summary(c_original$positives))</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -5826.0   874.2  2800.5  5373.8  5847.5 83090.0</code></pre>
+summarise(c_original,
+          mean = mean(positives),
+          min = min(positives),
+          max = max(positives))</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    mean   min   max
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 5374. -5826 83090</code></pre>
 <pre class="r"><code># pos.pct
-print(summary(c_original$pos.pct))</code></pre>
-<pre><code>##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -3.12608  0.03647  0.06368  0.08725  0.11002  1.47892</code></pre>
-<pre class="r"><code># The data is NOT informative.
+summarise(c_original,
+          mean = mean(pos.pct),
+          min = min(pos.pct),
+          max = max(pos.pct))</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    mean   min   max
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1  8.73 -313.  148.</code></pre>
+<pre class="r"><code># The data is NOT fully informative.
 # reason 1: the invalid/ negative values will affect the accuracy of the minimum, mean, quantiles, and pos.pct
 # reason 2: the min positive percent (pos.pct) is negative, and the max is over 100, which do not make sense</code></pre>
 </div>
@@ -257,7 +272,7 @@ print(summary(c_original$pos.pct))</code></pre>
 negDeath()</code></pre>
 <pre><code>## [1] &quot;CO&quot;
 ## [1] &quot;2020-05-22&quot;</code></pre>
-<pre class="r"><code># for the negative value of death count, we should treat it as an outlier, since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.</code></pre>
+<pre class="r"><code># for the negative value of death count, we should treat it as an outlier since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.</code></pre>
 </div>
 <div id="set-all-non-sensical-negative-values-to-missing.-report-on-descriptive-stistics-again.-are-there-any-more-anamolies-to-fix" class="section level4">
 <h4>5) Set all non-sensical negative values to missing. Report on descriptive stistics again. Are there any more anamolies to fix?</h4>
@@ -266,21 +281,35 @@ c &lt;- c_original %&gt;%
   mutate(deaths = ifelse(deaths &lt; 0, NA, deaths)) %&gt;%
   mutate(positives = ifelse(positives &lt; 0, NA, positives)) %&gt;%
   mutate(negatives = ifelse(negatives &lt; 0, NA, negatives)) %&gt;%
-  # ?????
-  mutate(pos.pct = ifelse(pos.pct &lt; 0, NA, positives / (positives + negatives)))
+  mutate(pos.pct = ifelse(pos.pct &lt; 0, NA, positives / (positives + negatives) * 100))
 
 # deaths
-print(summary(c$deaths))</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
-##     0.0    16.0    54.0   140.7   132.0  4978.0       1</code></pre>
+summarise(c,
+          mean = mean(deaths, na.rm = TRUE),
+          min = min(deaths, na.rm = TRUE),
+          max = max(deaths, na.rm = TRUE))</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    mean   min   max
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1  141.     0  4978</code></pre>
 <pre class="r"><code># positives
-print(summary(c$positives))</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
-##       5     875    2809    5381    5852   83090       1</code></pre>
+summarise(c,
+          mean = mean(positives, na.rm = TRUE),
+          min = min(positives, na.rm = TRUE),
+          max = max(positives, na.rm = TRUE))</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    mean   min   max
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 5381.     5 83090</code></pre>
 <pre class="r"><code># pos.pct
-print(summary(c$pos.pct))</code></pre>
-<pre><code>##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA&#39;s 
-## 0.000742 0.036819 0.063720 0.089145 0.110113 1.000000        6</code></pre>
+summarise(c,
+          mean = mean(pos.pct, na.rm = TRUE),
+          min = min(pos.pct, na.rm = TRUE),
+          max = max(pos.pct, na.rm = TRUE))</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##    mean    min   max
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1  8.91 0.0742   100</code></pre>
 <pre class="r"><code># sknewness, the data is highly skewed to the right
 c %&gt;%
   summarise(
@@ -350,63 +379,74 @@ getCaseCount(&quot;VA&quot;)</code></pre>
 </div>
 <div id="create-a-list-with-the-total-number-of-cases-for-all-states-by-week.-specifically-for-each-week-list-should-contain-one-object-call-it-data-that-contains-the-state-level-number-of-cases-this-element-will-be-as-long-as-the-number-of-states-and-another-object-call-it-total-that-has-the-total-of-cases-across-all-states-for-that-week-a-single-number." class="section level4">
 <h4>8) Create a list with the total number of cases for all states by week. Specifically, for each week, list should contain one object (call it “data”) that contains the state-level number of cases (this element will be as long as the number of states) and another object (call it “total”) that has the total of cases across all states for that week (a single number).</h4>
-<pre class="r"><code># total =list(aggregate(covid_new.2$positives, by=list(week=covid_new.2$friday), FUN=sum, na.rm = TRUE))
-# print(total)
-
-dataObj = data.frame()
-
-
-
-
-
-# Total Object
-getTotalObj &lt;- function() {
-  totalObj = data.frame()
+<pre class="r"><code>getDataObj &lt;- function() {
+  resObj = list()
   i = 1
   while (i &lt; NROW(c)) {
-    curDate = c$friday[i]
-    curDf2 &lt;- c %&gt;%
+    curDate &lt;- c$friday[i]
+    curInfo &lt;- c %&gt;%
+      filter(friday == curDate) %&gt;%
+      select(state, positives)
+    curCount = NROW(curInfo)
+    
+    curInfo2 &lt;- c %&gt;%
       filter(friday == curDate)
-    curCount2 &lt;- NROW(curDf2)
-    curTotal &lt;- sum(curDf2$positives)
-    curRes2 &lt;- data.frame(Date = as.character(curDate), Total = as.integer(curTotal))
-    totalObj &lt;- rbind(totalObj, curRes2)
-    i &lt;- i + curCount2
+    curTotal &lt;- sum(curInfo2$positives)
+    
+    # curRes = list(as.character(curDate), curInfo$state, curInfo$positives, as.integer(curTotal))
+    
+    curRes = list(Date = as.character(curDate), Info = curInfo, Total = as.integer(curTotal))
+    resObj &lt;- append(resObj, curRes)
+    i = i + curCount
   }
-  return(na.omit(totalObj))
+  return(resObj)
 }
 
-print(getTotalObj())</code></pre>
-<pre><code>##          Date  Total
-## 1  2020-10-16 378004
-## 2  2020-10-09 324342
-## 3  2020-10-02 289676
-## 4  2020-09-25 301769
-## 5  2020-09-18 272260
-## 6  2020-09-11 238416
-## 8  2020-08-28 283643
-## 9  2020-08-21 306497
-## 10 2020-08-14 359359
-## 11 2020-08-07 372068
-## 12 2020-07-31 437798
-## 13 2020-07-24 462844
-## 14 2020-07-17 456139
-## 15 2020-07-10 380346
-## 16 2020-07-03 330298
-## 17 2020-06-26 243140
-## 18 2020-06-19 171227
-## 19 2020-06-12 141912
-## 20 2020-06-05 149468
-## 21 2020-05-29 142028
-## 22 2020-05-22 158466
-## 23 2020-05-15 159821
-## 24 2020-05-08 179144
-## 25 2020-05-01 199919
-## 26 2020-04-24 202225
-## 27 2020-04-17 201988
-## 28 2020-04-10 217416
-## 29 2020-04-03 171465
-## 30 2020-03-27  87633</code></pre>
+resObj = getDataObj()
+print(head(resObj))</code></pre>
+<pre><code>## $Date
+## [1] &quot;2020-10-16&quot;
+## 
+## $Info
+## # A tibble: 49 x 2
+##    state positives
+##    &lt;chr&gt;     &lt;dbl&gt;
+##  1 AK         1400
+##  2 AL         6909
+##  3 AR         7394
+##  4 AZ         5402
+##  5 CA        22870
+##  6 CO         6133
+##  7 CT         2792
+##  8 DC          412
+##  9 DE          897
+## 10 FL        19516
+## # ... with 39 more rows
+## 
+## $Total
+## [1] 378004
+## 
+## $Date
+## [1] &quot;2020-10-09&quot;
+## 
+## $Info
+## # A tibble: 49 x 2
+##    state positives
+##    &lt;chr&gt;     &lt;dbl&gt;
+##  1 AK         1136
+##  2 AL         6767
+##  3 AR         4366
+##  4 AZ         4321
+##  5 CA        21329
+##  6 CO         4567
+##  7 CT         1741
+##  8 DC          420
+##  9 DE          890
+## 10 FL        17117
+## # ... with 39 more rows
+## 
+## $Total
+## [1] 324342</code></pre>
 </div>
 </div>
 
