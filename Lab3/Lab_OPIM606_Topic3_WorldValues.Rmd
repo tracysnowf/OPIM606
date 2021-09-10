@@ -1,0 +1,58 @@
+---
+title: "Topic 3 Lab"
+output: html_document
+author: Xue(Tracy) Feng
+---
+
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(tidyverse)
+library(knitr)
+library(dplyr)
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/Lab3")
+```
+
+#### 1) Load the World Values Survey data from "Data/WV7_small.csv" and the CountryCode data from "Data/Country codes for WVS wave 7.csv".
+The codebook for the World Values Survey data is available at 
+http://www.worldvaluessurvey.org/WVSDocumentationWV7.jsp
+
+See Lab 1 for more details on the variables.
+
+```{r tidy = FALSE}
+countryCode = read_csv("Country codes for WVS wave 7.csv")
+wv = read_csv("WV7_small.csv")
+
+head(countryCode)
+head(wv)
+```
+
+#### 2) Join the country name from the CountryCode data to the World Values data.  The country code is *V2* in CountryCode and *B_Country* in the World Values data.  Create two data objects of the countries in and not in the World Values data. Display the first 10 countries for each list.
+
+```{r tidy = FALSE}
+
+
+
+```
+### 3) Create a function using pipes that calculates the mean and number of observations for the *Satisfied* (life satisfaction) variable by male and female for a given country name.
+
+```{r tidy = FALSE}
+```
+
+### 4) Using pipes, calculate the percent immigrant in every country. Show the highest 10 and lowest 10 countries. (Be sure to think through what the variable in the data set means.) 
+```
+
+
+#### 5) We're now going to give some examples of the kind of data we can calculate.  Think about how you would do this in Excel (but don't actually do it!) and then calculate in R. Calculate the percent of immigrants who are men, by country and show the highest and lowest 10 countries.
+```{r tidy = FALSE}
+```
+
+#### 6) Group by marital status and country and show the percent of people in each category who are men.  Show the results for a country of your choice and briefly discuss what it means when the percentages in each category are not roughly 50 percent. Recall that the coding for the *Marital* variable is 1 = Married 2 = Living together as married 3 = Divorced 4 = Separated 5 = Widowed 6 = Single.
+
+```{r tidy = FALSE}
+```
+
+#### 7) Come up with your own alternatives: think about some possible subset of people and some information we have about them and see if you can write code to capture that information. 

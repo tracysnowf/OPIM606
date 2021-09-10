@@ -98,10 +98,11 @@ OLS.1 <- lm(
 )
 
 # explaination
+names(OLS.1)
+str(OLS.1)
 summary(OLS.1)
 
-# what is OLS.1[[1]]?
-print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+# what is OLS.1[[1]]? - coefficients of the model. The two constants represent intercept and slope
 OLS.1[[1]]
 ```
 #### 4) Loop thru all countries in the World Values survey to assess the bivariate relationship between opposition to democracy and age. Save coefficient on age and t-statistic on age for each country.
@@ -192,6 +193,9 @@ for (code in keys(countryInfo)) {
   # add current result to result
   resultDf2 <- cbind(curTable)
 }
+
+# rename the rating names
+rownames(resultDf2) = c("Very good", "Fairly good", "Fairly bad", "Very bad")
 
 # function that prints a table with response percent for each answer for *DemocracyBad* question for any country
 getResponsePercent <- function(countryName) {

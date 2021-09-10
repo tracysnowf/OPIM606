@@ -1,0 +1,219 @@
+---
+title: "Topics 1 and 2 problem set"
+output: html_document
+author: Xue(Tracy) Feng
+
+---
+
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(tidyverse)
+library(knitr)
+library(moments)
+library(formattable)
+library(hash)
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/ProblemSet1")
+```
+
+#### 1) Load the data from Covid_by_state_week.rds
+The data is from https://covidtracking.com/data.  It contains weekly state level information related to the covid pandemic.  The variables in our data set are
+
+- state: state abbreviation
+
+- friday: date
+
+- deaths: number of covid deaths in state in that week (the `d' is for difference)
+
+- positives: number of positive covid tests reported in state in that week
+
+- negatives: number of negative covid tests reported in state in that week
+
+```{r tidy = FALSE}
+# Load covid by state week data
+c_original = read_csv("Covid_by_state_week.csv")
+```
+
+#### 2)  Add a variable to your data frame called `pos.pct' that is the percent of tests that were positive in the week
+
+```{r tidy = FALSE}
+
+# add 'pos.pct'
+c_original <- c_original %>%
+  mutate(pos.pct = positives / (positives + negatives))
+print(c_original)
+```
+
+#### 3)  Calculate the descriptive statistics (mean, min, max) for the entire data set for the deaths, positive and pos.pct variables.  Are these quantities informative? Why or why not?
+
+```{r tidy = FALSE}
+
+# deaths
+print(summary(c_original$deaths))
+
+# positives
+print(summary(c_original$positives))
+
+# pos.pct
+print(summary(c_original$pos.pct))
+
+# The data is NOT fully informative.
+# reason 1: the invalid/ negative values will affect the accuracy of the minimum, mean, quantiles, and pos.pct
+# reason 2: the min positive percent (pos.pct) is negative, and the max is over 100, which do not make sense
+```
+
+#### 4)  Which state/weeks are reporting negative deaths?  What should we do about that data?
+```{r tidy = FALSE}
+
+negDeath <- function() {
+  for (i in 1:NROW(c_original$deaths)) {
+    if (c_original$deaths[i] < 0) {
+      print(c_original$state[i])
+      print(c_original$friday[i])
+    }
+  }
+}
+negDeath()
+
+# for the negative value of death count, we should treat it as an outlier, since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.
+```
+
+#### 5)  Set all non-sensical negative values to missing.  Report on descriptive stistics again.  Are there any more anamolies to fix?
+```{r tidy = FALSE}
+
+# clean dataset: change negative counts -> NA
+c <- c_original %>%
+  mutate(deaths = ifelse(deaths < 0, NA, deaths)) %>%
+  mutate(positives = ifelse(positives < 0, NA, positives)) %>%
+  mutate(negatives = ifelse(negatives < 0, NA, negatives)) %>%
+  # ?????
+  mutate(pos.pct = ifelse(pos.pct < 0, NA, positives / (positives + negatives)))
+
+# deaths
+print(summary(c$deaths))
+
+# positives
+print(summary(c$positives))
+
+# pos.pct
+print(summary(c$pos.pct))
+
+# sknewness, the data is highly skewed to the right
+c %>%
+  summarise(
+    skewDeaths = skewness(deaths, na.rm = TRUE),
+    sknewPositives = skewness(positives, na.rm = TRUE),
+    sknewNegatives = skewness(negatives, na.rm = TRUE)
+  )
+
+# kurtosis, the data is not normally distributed
+c %>%
+  summarise(
+    kurtosisDeaths = kurtosis(deaths, na.rm = TRUE),
+    kurtosisPositives = kurtosis(positives, na.rm = TRUE),
+    kurtosisNegatives = kurtosis(negatives, na.rm = TRUE)
+  )
+```
+
+#### 6)  Create a loop that produces a data frame that contains the max level of deaths by state and the week in which that happened.  (If a state had multiple weeks with the same max-value of deaths, use only the first week.) The number of rows of this data frame will be the number of states. Display the first five rows of this data frame.
+
+```{r tidy = FALSE}
+
+dfMaxLevelDeath <- data.frame(Deaths = integer(), State = character(), Week = character())
+cByState <- dplyr::arrange(c, state)
+i = 1
+while (i < NROW(cByState)) {
+  curState <- cByState$state[i]
+  curDf <- cByState %>%
+    filter(cByState$state == curState) %>%
+    dplyr::select(deaths, state, friday)
+  curCount <- NROW(curDf)
+  curRes <- arrange(curDf, desc(deaths))[1, ]
+  # store current answer to result data frame
+  dfMaxLevelDeath <- rbind(dfMaxLevelDeath, curRes)
+  i <- i + curCount
+}
+names(dfMaxLevelDeath) <- c("Deaths", "State", "Week")
+
+head(dfMaxLevelDeath, 5)
+
+```
+
+#### 7)  Create a function that displays the total number of cases for a given state. Report the output of this function for two states.
+```{r tidy = FALSE}
+  
+getCaseCount <- function(stateName) {
+  cCur <- c %>%
+    filter(state == stateName) %>%
+    arrange(state)
+  return(sum(cCur$positives))
+}
+
+# test: CA
+getCaseCount("CA")
+
+# test： VA
+getCaseCount("VA")
+
+```
+
+#### 8)  Create a list with the total number of cases for all states by week. Specifically, for each week, list should contain one object (call it "data") that contains the state-level number of cases (this element will be as long as the number of states) and another object (call it "total") that has the total of cases across all states for that week (a single number). 
+
+```{r tidy = FALSE}
+
+getDataObj <- function() {
+  resObj = list()
+  i = 1
+  while (i < 120) {
+    curDate <- c$friday[i]
+    curInfo <- c %>%
+      filter(friday == curDate) %>%
+      select(state, positives)
+    curCount = NROW(curInfo)
+    
+    curInfo2 <- c %>%
+      filter(friday == curDate)
+    curTotal <- sum(curInfo2$positives)
+    
+    # curRes = list(as.character(curDate), curInfo$state, curInfo$positives, as.integer(curTotal))
+    curRes = list(as.character(curDate), curInfo, as.integer(curTotal))
+    print(curRes)
+    resObj <- append(resObj, curRes)
+    i = i + curCount
+  }
+  return(resObj)
+}
+
+# print(getDataObj())
+# 
+# # get total object
+# getTotalObj <- function() {
+#   totalObj = data.frame()
+#   i = 1
+#   while (i < NROW(c)) {
+#     curDate = c$friday[i]
+#     curDf <- c %>%
+#       filter(friday == curDate)
+#     curCount <- NROW(curDf)
+#     curTotal <- sum(curDf$positives)
+#     curRes <- data.frame(Date = as.character(curDate), Total = as.integer(curTotal))
+#     totalObj <- rbind(totalObj, curRes)
+#     i <- i + curCount
+#   }
+#   return(na.omit(totalObj))
+# }
+
+# store two objects into the result list
+resultList <- list(getDataObj(), getTotalObj())
+
+# print(resultList[[1]][1])
+
+# print(getTotalObj())
+
+
+```
+
+

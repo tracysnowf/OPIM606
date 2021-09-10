@@ -288,7 +288,74 @@ OLS.1 &lt;- lm(
 )
 
 # explaination
-summary(OLS.1)</code></pre>
+names(OLS.1)</code></pre>
+<pre><code>##  [1] &quot;coefficients&quot;  &quot;residuals&quot;     &quot;effects&quot;       &quot;rank&quot;         
+##  [5] &quot;fitted.values&quot; &quot;assign&quot;        &quot;qr&quot;            &quot;df.residual&quot;  
+##  [9] &quot;na.action&quot;     &quot;xlevels&quot;       &quot;call&quot;          &quot;terms&quot;        
+## [13] &quot;model&quot;</code></pre>
+<pre class="r"><code>str(OLS.1)</code></pre>
+<pre><code>## List of 13
+##  $ coefficients : Named num [1:2] 1.6967 -0.00062
+##   ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;(Intercept)&quot; &quot;age&quot;
+##  $ residuals    : Named num [1:80794] 0.316 -0.682 0.319 1.321 0.325 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:80794] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+##  $ effects      : Named num [1:80794] -474.847 -2.899 0.321 1.322 0.325 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:80794] &quot;(Intercept)&quot; &quot;age&quot; &quot;&quot; &quot;&quot; ...
+##  $ rank         : int 2
+##  $ fitted.values: Named num [1:80794] 1.68 1.68 1.68 1.68 1.67 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:80794] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+##  $ assign       : int [1:2] 0 1
+##  $ qr           :List of 5
+##   ..$ qr   : num [1:80794, 1:2] -2.84e+02 3.52e-03 3.52e-03 3.52e-03 3.52e-03 ...
+##   .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. .. ..$ : chr [1:80794] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+##   .. .. ..$ : chr [1:2] &quot;(Intercept)&quot; &quot;age&quot;
+##   .. ..- attr(*, &quot;assign&quot;)= int [1:2] 0 1
+##   ..$ qraux: num [1:2] 1 1
+##   ..$ pivot: int [1:2] 1 2
+##   ..$ tol  : num 1e-07
+##   ..$ rank : int 2
+##   ..- attr(*, &quot;class&quot;)= chr &quot;qr&quot;
+##  $ df.residual  : int 80792
+##  $ na.action    : &#39;omit&#39; Named int [1:6775] 45 49 53 60 70 78 79 80 83 89 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:6775] &quot;45&quot; &quot;49&quot; &quot;53&quot; &quot;60&quot; ...
+##  $ xlevels      : Named list()
+##  $ call         : language lm(formula = (wv$DemocracyBad ~ age), data = wv)
+##  $ terms        :Classes &#39;terms&#39;, &#39;formula&#39;  language wv$DemocracyBad ~ age
+##   .. ..- attr(*, &quot;variables&quot;)= language list(wv$DemocracyBad, age)
+##   .. ..- attr(*, &quot;factors&quot;)= int [1:2, 1] 0 1
+##   .. .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. .. .. ..$ : chr [1:2] &quot;wv$DemocracyBad&quot; &quot;age&quot;
+##   .. .. .. ..$ : chr &quot;age&quot;
+##   .. ..- attr(*, &quot;term.labels&quot;)= chr &quot;age&quot;
+##   .. ..- attr(*, &quot;order&quot;)= int 1
+##   .. ..- attr(*, &quot;intercept&quot;)= int 1
+##   .. ..- attr(*, &quot;response&quot;)= int 1
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: R_GlobalEnv&gt; 
+##   .. ..- attr(*, &quot;predvars&quot;)= language list(wv$DemocracyBad, age)
+##   .. ..- attr(*, &quot;dataClasses&quot;)= Named chr [1:2] &quot;numeric&quot; &quot;numeric&quot;
+##   .. .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;wv$DemocracyBad&quot; &quot;age&quot;
+##  $ model        :&#39;data.frame&#39;:   80794 obs. of  2 variables:
+##   ..$ wv$DemocracyBad: num [1:80794] 2 1 2 3 2 1 3 1 1 2 ...
+##   ..$ age            : num [1:80794] 21 24 26 28 35 36 41 44 59 72 ...
+##   ..- attr(*, &quot;terms&quot;)=Classes &#39;terms&#39;, &#39;formula&#39;  language wv$DemocracyBad ~ age
+##   .. .. ..- attr(*, &quot;variables&quot;)= language list(wv$DemocracyBad, age)
+##   .. .. ..- attr(*, &quot;factors&quot;)= int [1:2, 1] 0 1
+##   .. .. .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. .. .. .. ..$ : chr [1:2] &quot;wv$DemocracyBad&quot; &quot;age&quot;
+##   .. .. .. .. ..$ : chr &quot;age&quot;
+##   .. .. ..- attr(*, &quot;term.labels&quot;)= chr &quot;age&quot;
+##   .. .. ..- attr(*, &quot;order&quot;)= int 1
+##   .. .. ..- attr(*, &quot;intercept&quot;)= int 1
+##   .. .. ..- attr(*, &quot;response&quot;)= int 1
+##   .. .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: R_GlobalEnv&gt; 
+##   .. .. ..- attr(*, &quot;predvars&quot;)= language list(wv$DemocracyBad, age)
+##   .. .. ..- attr(*, &quot;dataClasses&quot;)= Named chr [1:2] &quot;numeric&quot; &quot;numeric&quot;
+##   .. .. .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;wv$DemocracyBad&quot; &quot;age&quot;
+##   ..- attr(*, &quot;na.action&quot;)= &#39;omit&#39; Named int [1:6775] 45 49 53 60 70 78 79 80 83 89 ...
+##   .. ..- attr(*, &quot;names&quot;)= chr [1:6775] &quot;45&quot; &quot;49&quot; &quot;53&quot; &quot;60&quot; ...
+##  - attr(*, &quot;class&quot;)= chr &quot;lm&quot;</code></pre>
+<pre class="r"><code>summary(OLS.1)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = (wv$DemocracyBad ~ age), data = wv)
@@ -308,10 +375,8 @@ summary(OLS.1)</code></pre>
 ##   (6775 observations deleted due to missingness)
 ## Multiple R-squared:  0.0001763,  Adjusted R-squared:  0.000164 
 ## F-statistic: 14.25 on 1 and 80792 DF,  p-value: 0.0001602</code></pre>
-<pre class="r"><code># what is OLS.1[[1]]?
-print(&quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;)</code></pre>
-<pre><code>## [1] &quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;</code></pre>
-<pre class="r"><code>OLS.1[[1]]</code></pre>
+<pre class="r"><code># what is OLS.1[[1]]? - coefficients of the model. The two constants represent intercept and slope
+OLS.1[[1]]</code></pre>
 <pre><code>##   (Intercept)           age 
 ##  1.6967022669 -0.0006203861</code></pre>
 </div>
@@ -518,6 +583,9 @@ for (code in keys(countryInfo)) {
   resultDf2 &lt;- cbind(curTable)
 }
 
+# rename the rating names
+rownames(resultDf2) = c(&quot;Very good&quot;, &quot;Fairly good&quot;, &quot;Fairly bad&quot;, &quot;Very bad&quot;)
+
 # function that prints a table with response percent for each answer for *DemocracyBad* question for any country
 getResponsePercent &lt;- function(countryName) {
   for (name in colnames(resultDf2)) {
@@ -529,19 +597,19 @@ getResponsePercent &lt;- function(countryName) {
 
 # test: United States
 getResponsePercent(&quot;United States&quot;)</code></pre>
-<pre><code>##   United States
-## 1     41.589649
-## 2     41.959335
-## 3     11.460259
-## 4      4.990758</code></pre>
+<pre><code>##             United States
+## Very good       41.589649
+## Fairly good     41.959335
+## Fairly bad      11.460259
+## Very bad         4.990758</code></pre>
 <pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
 <pre class="r"><code># test: China
 getResponsePercent(&quot;China&quot;)</code></pre>
-<pre><code>##       China
-## 1 35.290796
-## 2 55.844156
-## 3  7.058159
-## 4  1.806889</code></pre>
+<pre><code>##                 China
+## Very good   35.290796
+## Fairly good 55.844156
+## Fairly bad   7.058159
+## Very bad     1.806889</code></pre>
 </div>
 <div id="create-a-list-with-regression-results-for-an-ols-model-explaining-democracybad-as-a-function-of-age-income-education-and-male.-be-able-to-print-results-by-country-name." class="section level4">
 <h4>6) Create a list with regression results for an OLS model explaining <em>DemocracyBad</em> as a function of age, income, education and male. Be able to print results by country name.</h4>
