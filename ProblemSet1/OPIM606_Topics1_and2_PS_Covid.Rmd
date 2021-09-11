@@ -12,8 +12,6 @@ author: Xue(Tracy) Feng
 library(tidyverse)
 library(knitr)
 library(moments)
-library(formattable)
-library(hash)
 
 # As needed, set path to folder where data is located.
 opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/ProblemSet1")
@@ -53,21 +51,21 @@ print(c_original)
 
 # deaths
 summarise(c_original,
-          mean = mean(deaths),
-          min = min(deaths),
-          max = max(deaths))
+          meanDeaths = mean(deaths),
+          minDeaths = min(deaths),
+          maxDeaths = max(deaths))
 
 # positives
 summarise(c_original,
-          mean = mean(positives),
-          min = min(positives),
-          max = max(positives))
+          meanPos = mean(positives),
+          minPos = min(positives),
+          maxPos = max(positives))
 
 # pos.pct
 summarise(c_original,
-          mean = mean(pos.pct),
-          min = min(pos.pct),
-          max = max(pos.pct))
+          meanPosPercent = mean(pos.pct),
+          minPosPercent = min(pos.pct),
+          maxPosPercent = max(pos.pct))
 
 # The data is NOT fully informative.
 # reason 1: the invalid/ negative values will affect the accuracy of the minimum, mean, quantiles, and pos.pct
@@ -87,7 +85,8 @@ negDeath <- function() {
 }
 negDeath()
 
-# for the negative value of death count, we should treat it as an outlier since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.
+# 1. In the real life, we should always find the person with the ownership of the data, and ask the meaning of the data. Does it have some special meaning? Is it a typo?. 
+# 2. If we cannot find the person who made the data, we should make the negative deaths NA. This is because the count of deaths cannot be a negative number. It can only be equal or greater than 0. 
 ```
 
 #### 5)  Set all non-sensical negative values to missing.  Report on descriptive stistics again.  Are there any more anamolies to fix?
@@ -102,21 +101,21 @@ c <- c_original %>%
 
 # deaths
 summarise(c,
-          mean = mean(deaths, na.rm = TRUE),
-          min = min(deaths, na.rm = TRUE),
-          max = max(deaths, na.rm = TRUE))
+          meanDeaths = mean(deaths, na.rm = TRUE),
+          minDeaths = min(deaths, na.rm = TRUE),
+          maxDeaths = max(deaths, na.rm = TRUE))
 
 # positives
 summarise(c,
-          mean = mean(positives, na.rm = TRUE),
-          min = min(positives, na.rm = TRUE),
-          max = max(positives, na.rm = TRUE))
+          meanPos = mean(positives, na.rm = TRUE),
+          minPos = min(positives, na.rm = TRUE),
+          maxPos = max(positives, na.rm = TRUE))
 
 # pos.pct
 summarise(c,
-          mean = mean(pos.pct, na.rm = TRUE),
-          min = min(pos.pct, na.rm = TRUE),
-          max = max(pos.pct, na.rm = TRUE))
+          meanPosPercent = mean(pos.pct, na.rm = TRUE),
+          minPosPercent = min(pos.pct, na.rm = TRUE),
+          maxPosPercent = max(pos.pct, na.rm = TRUE))
 
 # sknewness, the data is highly skewed to the right
 c %>%
@@ -164,8 +163,7 @@ head(dfMaxLevelDeath, 5)
   
 getCaseCount <- function(stateName) {
   cCur <- c %>%
-    filter(state == stateName) %>%
-    arrange(state)
+    filter(state == stateName)
   return(sum(cCur$positives))
 }
 
@@ -181,8 +179,8 @@ getCaseCount("VA")
 
 ```{r tidy = FALSE}
 
-getDataObj <- function() {
-  resObj = list()
+getResList <- function() {
+  resList = list()
   i = 1
   while (i < NROW(c)) {
     curDate <- c$friday[i]
@@ -198,14 +196,14 @@ getDataObj <- function() {
     # curRes = list(as.character(curDate), curInfo$state, curInfo$positives, as.integer(curTotal))
     
     curRes = list(Date = as.character(curDate), Info = curInfo, Total = as.integer(curTotal))
-    resObj <- append(resObj, curRes)
+    resList <- append(resList, curRes)
     i = i + curCount
   }
-  return(resObj)
+  return(resList)
 }
 
-resObj = getDataObj()
-print(head(resObj))
+resList = getResList()
+print(head(resList))
 
 ```
 

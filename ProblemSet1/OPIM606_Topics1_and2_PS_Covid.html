@@ -176,8 +176,6 @@ pre code {
 library(tidyverse)
 library(knitr)
 library(moments)
-library(formattable)
-library(hash)
 
 # As needed, set path to folder where data is located.
 opts_knit$set(root.dir = &quot;C:/Users/Xue Feng/Desktop/OPIM606/ProblemSet1&quot;)</code></pre>
@@ -230,31 +228,31 @@ print(c_original)</code></pre>
 <h4>3) Calculate the descriptive statistics (mean, min, max) for the entire data set for the deaths, positive and pos.pct variables. Are these quantities informative? Why or why not?</h4>
 <pre class="r"><code># deaths
 summarise(c_original,
-          mean = mean(deaths),
-          min = min(deaths),
-          max = max(deaths))</code></pre>
+          meanDeaths = mean(deaths),
+          minDeaths = min(deaths),
+          maxDeaths = max(deaths))</code></pre>
 <pre><code>## # A tibble: 1 x 3
-##    mean   min   max
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  141.   -29  4978</code></pre>
+##   meanDeaths minDeaths maxDeaths
+##        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1       141.       -29      4978</code></pre>
 <pre class="r"><code># positives
 summarise(c_original,
-          mean = mean(positives),
-          min = min(positives),
-          max = max(positives))</code></pre>
+          meanPos = mean(positives),
+          minPos = min(positives),
+          maxPos = max(positives))</code></pre>
 <pre><code>## # A tibble: 1 x 3
-##    mean   min   max
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 5374. -5826 83090</code></pre>
+##   meanPos minPos maxPos
+##     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1   5374.  -5826  83090</code></pre>
 <pre class="r"><code># pos.pct
 summarise(c_original,
-          mean = mean(pos.pct),
-          min = min(pos.pct),
-          max = max(pos.pct))</code></pre>
+          meanPosPercent = mean(pos.pct),
+          minPosPercent = min(pos.pct),
+          maxPosPercent = max(pos.pct))</code></pre>
 <pre><code>## # A tibble: 1 x 3
-##    mean   min   max
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  8.73 -313.  148.</code></pre>
+##   meanPosPercent minPosPercent maxPosPercent
+##            &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;
+## 1           8.73         -313.          148.</code></pre>
 <pre class="r"><code># The data is NOT fully informative.
 # reason 1: the invalid/ negative values will affect the accuracy of the minimum, mean, quantiles, and pos.pct
 # reason 2: the min positive percent (pos.pct) is negative, and the max is over 100, which do not make sense</code></pre>
@@ -272,7 +270,8 @@ summarise(c_original,
 negDeath()</code></pre>
 <pre><code>## [1] &quot;CO&quot;
 ## [1] &quot;2020-05-22&quot;</code></pre>
-<pre class="r"><code># for the negative value of death count, we should treat it as an outlier since the count of people cannot be a negative number. Therefore, I would set the outlier to NA.</code></pre>
+<pre class="r"><code># 1. In the real life, we should always find the person with the ownership of the data, and ask the meaning of the data. Does it have some special meaning? Is it a typo?. 
+# 2. If we cannot find the person who made the data, we should make the negative deaths NA. This is because the count of deaths cannot be a negative number. It can only be equal or greater than 0. </code></pre>
 </div>
 <div id="set-all-non-sensical-negative-values-to-missing.-report-on-descriptive-stistics-again.-are-there-any-more-anamolies-to-fix" class="section level4">
 <h4>5) Set all non-sensical negative values to missing. Report on descriptive stistics again. Are there any more anamolies to fix?</h4>
@@ -285,31 +284,31 @@ c &lt;- c_original %&gt;%
 
 # deaths
 summarise(c,
-          mean = mean(deaths, na.rm = TRUE),
-          min = min(deaths, na.rm = TRUE),
-          max = max(deaths, na.rm = TRUE))</code></pre>
+          meanDeaths = mean(deaths, na.rm = TRUE),
+          minDeaths = min(deaths, na.rm = TRUE),
+          maxDeaths = max(deaths, na.rm = TRUE))</code></pre>
 <pre><code>## # A tibble: 1 x 3
-##    mean   min   max
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  141.     0  4978</code></pre>
+##   meanDeaths minDeaths maxDeaths
+##        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1       141.         0      4978</code></pre>
 <pre class="r"><code># positives
 summarise(c,
-          mean = mean(positives, na.rm = TRUE),
-          min = min(positives, na.rm = TRUE),
-          max = max(positives, na.rm = TRUE))</code></pre>
+          meanPos = mean(positives, na.rm = TRUE),
+          minPos = min(positives, na.rm = TRUE),
+          maxPos = max(positives, na.rm = TRUE))</code></pre>
 <pre><code>## # A tibble: 1 x 3
-##    mean   min   max
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 5381.     5 83090</code></pre>
+##   meanPos minPos maxPos
+##     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1   5381.      5  83090</code></pre>
 <pre class="r"><code># pos.pct
 summarise(c,
-          mean = mean(pos.pct, na.rm = TRUE),
-          min = min(pos.pct, na.rm = TRUE),
-          max = max(pos.pct, na.rm = TRUE))</code></pre>
+          meanPosPercent = mean(pos.pct, na.rm = TRUE),
+          minPosPercent = min(pos.pct, na.rm = TRUE),
+          maxPosPercent = max(pos.pct, na.rm = TRUE))</code></pre>
 <pre><code>## # A tibble: 1 x 3
-##    mean    min   max
-##   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-## 1  8.91 0.0742   100</code></pre>
+##   meanPosPercent minPosPercent maxPosPercent
+##            &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;
+## 1           8.91        0.0742           100</code></pre>
 <pre class="r"><code># sknewness, the data is highly skewed to the right
 c %&gt;%
   summarise(
@@ -365,8 +364,7 @@ head(dfMaxLevelDeath, 5)</code></pre>
 <h4>7) Create a function that displays the total number of cases for a given state. Report the output of this function for two states.</h4>
 <pre class="r"><code>getCaseCount &lt;- function(stateName) {
   cCur &lt;- c %&gt;%
-    filter(state == stateName) %&gt;%
-    arrange(state)
+    filter(state == stateName)
   return(sum(cCur$positives))
 }
 
@@ -379,8 +377,8 @@ getCaseCount(&quot;VA&quot;)</code></pre>
 </div>
 <div id="create-a-list-with-the-total-number-of-cases-for-all-states-by-week.-specifically-for-each-week-list-should-contain-one-object-call-it-data-that-contains-the-state-level-number-of-cases-this-element-will-be-as-long-as-the-number-of-states-and-another-object-call-it-total-that-has-the-total-of-cases-across-all-states-for-that-week-a-single-number." class="section level4">
 <h4>8) Create a list with the total number of cases for all states by week. Specifically, for each week, list should contain one object (call it “data”) that contains the state-level number of cases (this element will be as long as the number of states) and another object (call it “total”) that has the total of cases across all states for that week (a single number).</h4>
-<pre class="r"><code>getDataObj &lt;- function() {
-  resObj = list()
+<pre class="r"><code>getResList &lt;- function() {
+  resList = list()
   i = 1
   while (i &lt; NROW(c)) {
     curDate &lt;- c$friday[i]
@@ -396,14 +394,14 @@ getCaseCount(&quot;VA&quot;)</code></pre>
     # curRes = list(as.character(curDate), curInfo$state, curInfo$positives, as.integer(curTotal))
     
     curRes = list(Date = as.character(curDate), Info = curInfo, Total = as.integer(curTotal))
-    resObj &lt;- append(resObj, curRes)
+    resList &lt;- append(resList, curRes)
     i = i + curCount
   }
-  return(resObj)
+  return(resList)
 }
 
-resObj = getDataObj()
-print(head(resObj))</code></pre>
+resList = getResList()
+print(head(resList))</code></pre>
 <pre><code>## $Date
 ## [1] &quot;2020-10-16&quot;
 ## 
