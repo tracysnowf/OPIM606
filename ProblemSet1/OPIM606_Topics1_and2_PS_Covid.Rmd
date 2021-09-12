@@ -92,12 +92,9 @@ negDeath()
 #### 5)  Set all non-sensical negative values to missing.  Report on descriptive stistics again.  Are there any more anamolies to fix?
 ```{r tidy = FALSE}
 
-# clean dataset: change negative counts -> NA
+# change deaths negative counts -> NA
 c <- c_original %>%
-  mutate(deaths = ifelse(deaths < 0, NA, deaths)) %>%
-  mutate(positives = ifelse(positives < 0, NA, positives)) %>%
-  mutate(negatives = ifelse(negatives < 0, NA, negatives)) %>%
-  mutate(pos.pct = ifelse(pos.pct < 0, NA, positives / (positives + negatives) * 100))
+  mutate(deaths = ifelse(deaths < 0, NA, deaths))
 
 # deaths
 summarise(c,
@@ -117,21 +114,12 @@ summarise(c,
           minPosPercent = min(pos.pct, na.rm = TRUE),
           maxPosPercent = max(pos.pct, na.rm = TRUE))
 
-# sknewness, the data is highly skewed to the right
-c %>%
-  summarise(
-    skewDeaths = skewness(deaths, na.rm = TRUE),
-    sknewPositives = skewness(positives, na.rm = TRUE),
-    sknewNegatives = skewness(negatives, na.rm = TRUE)
-  )
+# Yes, we still have more anamolies to fix. We also need to set all negative values of positives, negatives, and pos.pct to NA (becasue the count cannot be negative numbers). 
+c <- c %>%
+  mutate(positives = ifelse(positives < 0, NA, positives)) %>%
+  mutate(negatives = ifelse(negatives < 0, NA, negatives)) %>%
+  mutate(pos.pct = ifelse(pos.pct < 0, NA, positives / (positives + negatives) * 100))
 
-# kurtosis, the data is not normally distributed
-c %>%
-  summarise(
-    kurtosisDeaths = kurtosis(deaths, na.rm = TRUE),
-    kurtosisPositives = kurtosis(positives, na.rm = TRUE),
-    kurtosisNegatives = kurtosis(negatives, na.rm = TRUE)
-  )
 ```
 
 #### 6)  Create a loop that produces a data frame that contains the max level of deaths by state and the week in which that happened.  (If a state had multiple weeks with the same max-value of deaths, use only the first week.) The number of rows of this data frame will be the number of states. Display the first five rows of this data frame.
@@ -179,31 +167,17 @@ getCaseCount("VA")
 
 ```{r tidy = FALSE}
 
-getResList <- function() {
-  resList = list()
-  i = 1
-  while (i < NROW(c)) {
-    curDate <- c$friday[i]
-    curInfo <- c %>%
-      filter(friday == curDate) %>%
-      select(state, positives)
-    curCount = NROW(curInfo)
-    
-    curInfo2 <- c %>%
-      filter(friday == curDate)
-    curTotal <- sum(curInfo2$positives)
-    
-    # curRes = list(as.character(curDate), curInfo$state, curInfo$positives, as.integer(curTotal))
-    
-    curRes = list(Date = as.character(curDate), Info = curInfo, Total = as.integer(curTotal))
-    resList <- append(resList, curRes)
-    i = i + curCount
-  }
-  return(resList)
+resList = list()
+i = 1
+while (i < NROW(c)) {
+  curInfo <- c %>%
+    filter(friday == c$friday[i])
+  curRes = list(Data = curInfo$positives, Total = sum(curInfo$positives))
+  resList <- append(resList, list(curRes))
+  i = i + NROW(curInfo)
 }
 
-resList = getResList()
-print(head(resList))
+print(resList)
 
 ```
 
