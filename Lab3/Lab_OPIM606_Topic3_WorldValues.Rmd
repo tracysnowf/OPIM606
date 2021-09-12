@@ -23,28 +23,65 @@ http://www.worldvaluessurvey.org/WVSDocumentationWV7.jsp
 See Lab 1 for more details on the variables.
 
 ```{r tidy = FALSE}
-countryCode = read_csv("Country codes for WVS wave 7.csv")
-wv = read_csv("WV7_small.csv")
+cc = read_csv("Country codes for WVS wave 7.csv")
+wv_original = read_csv("WV7_small.csv")
 
-head(countryCode)
-head(wv)
+head(cc)
+head(wv_original)
 ```
 
 #### 2) Join the country name from the CountryCode data to the World Values data.  The country code is *V2* in CountryCode and *B_Country* in the World Values data.  Create two data objects of the countries in and not in the World Values data. Display the first 10 countries for each list.
 
 ```{r tidy = FALSE}
+# wv with joint country names
+wv <- right_join(cc, wv_original, by = c('V2' = 'B_COUNTRY'))
 
+# countries in the world values data
+wvCountry <- wv %>%
+  dplyr::select(country) %>%
+  unique()
+  
+print(head(wvCountry, 10))
 
+# countries not in the world values data
+nonWvCountry <- anti_join(cc, wv_original, by = c('V2' = 'B_COUNTRY'))
+nonWvCountry <- nonWvCountry %>%
+  dplyr::select(country) %>%
+  unique()
+
+print(head(nonWvCountry, 10))
 
 ```
 ### 3) Create a function using pipes that calculates the mean and number of observations for the *Satisfied* (life satisfaction) variable by male and female for a given country name.
 
 ```{r tidy = FALSE}
 
+getInfo <- function(countryName) {
+  genderWv <- wv %>%
+  mutate(Male, gender = ifelse(Male == 1, "male", "female")) %>%
+  select(country, gender, Satisfied) %>%
+  group_by(country, gender)
+  genderWv <- summarise(genderWv,
+                      count = n(),
+                      meanSat = mean(Satisfied, na.rm = TRUE))
+  result <- genderWv %>%
+    filter(country == countryName)
+  return(result)
+}
+
+# test: United States
+getInfo("United States")
+
+# test: China
+getInfo("China")
 
 ```
 
 ### 4) Using pipes, calculate the percent immigrant in every country. Show the highest 10 and lowest 10 countries. (Be sure to think through what the variable in the data set means.) 
+```{r tidy = FALSE}
+
+
+
 ```
 
 
@@ -53,6 +90,7 @@ head(wv)
 
 ```
 
+
 #### 6) Group by marital status and country and show the percent of people in each category who are men.  Show the results for a country of your choice and briefly discuss what it means when the percentages in each category are not roughly 50 percent. Recall that the coding for the *Marital* variable is 1 = Married 2 = Living together as married 3 = Divorced 4 = Separated 5 = Widowed 6 = Single.
 
 ```{r tidy = FALSE}
@@ -60,3 +98,7 @@ head(wv)
 ```
 
 #### 7) Come up with your own alternatives: think about some possible subset of people and some information we have about them and see if you can write code to capture that information. 
+```{r tidy = FALSE}
+
+```
+
