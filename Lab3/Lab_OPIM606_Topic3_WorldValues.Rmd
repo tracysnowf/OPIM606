@@ -58,15 +58,15 @@ print(head(nonWvCountry, 10))
 
 getInfo <- function(countryName) {
   genderWv <- wv %>%
-  mutate(Male, gender = ifelse(Male == 1, "male", "female")) %>%
-  select(country, gender, Satisfied) %>%
-  group_by(country, gender)
-  genderWv <- summarise(genderWv,
-                      count = n(),
-                      meanSat = mean(Satisfied, na.rm = TRUE))
-  result <- genderWv %>%
-    filter(country == countryName)
-  return(result)
+    filter(country == countryName) %>%
+    mutate(Male, gender = ifelse(Male == 1, "male", "female")) %>%
+    select(country, gender, Satisfied) %>%
+    group_by(country, gender) %>%
+    dplyr::summarise(count = n(),
+              meanSat = mean(Satisfied, na.rm = TRUE),
+              .groups = 'drop')
+    
+  return(genderWv)
 }
 
 # test: United States
@@ -80,13 +80,33 @@ getInfo("China")
 ### 4) Using pipes, calculate the percent immigrant in every country. Show the highest 10 and lowest 10 countries. (Be sure to think through what the variable in the data set means.) 
 ```{r tidy = FALSE}
 
+immigrantWv <- wv %>%
+  group_by(country) %>%
+  dplyr::summarize(immPct = sum(Immigrant == 2, na.rm = TRUE) / (n()) * 100)
 
+# top 10 countries with highest immigrant percent
+head(arrange(immigrantWv, desc(immPct)), 10)
+
+# top 10 countries with lowest immigrant percent
+head(arrange(immigrantWv, immPct), 10)
 
 ```
 
 
 #### 5) We're now going to give some examples of the kind of data we can calculate.  Think about how you would do this in Excel (but don't actually do it!) and then calculate in R. Calculate the percent of immigrants who are men, by country and show the highest and lowest 10 countries.
 ```{r tidy = FALSE}
+
+genderImmgWv <- wv %>%
+  filter(Immigrant == 2) %>%
+  group_by(country) %>%
+  dplyr::summarize(immPct = sum(Male == 1, na.rm = TRUE) / sum(Immigrant == 2, na.rm = TRUE) * 100,
+                   .groups = 'drop')
+
+# top 10 countries with highest male immigrant percent
+head(arrange(genderImmgWv, desc(immPct)), 10)
+
+# top 10 countries with lowest male immigrant percent
+head(arrange(genderImmgWv, immPct), 10)
 
 ```
 
@@ -95,10 +115,37 @@ getInfo("China")
 
 ```{r tidy = FALSE}
 
+maritalWv <- wv %>%
+  group_by(Marital, country) %>%
+  drop_na() %>%
+  summarize(malePct = 100*mean(Male),
+                              .groups = "drop")
+
+# test: United States
+maritalWv %>%
+  filter(country == "United States")
+
+# There are several potential reasons why a country may have values that are different from 50%. Here are a few possibilities across the response options:
+# 1. There may be a difference in the range of ages where individuals tend to be married. In general, men could tend to marry slightly older than women in the United States, for example.
+# 2. There may be same-sex couples that are not married, but are living together as married.
+# 3. Women may be more likely to remain divorced, rather than remarry. 
+# 4. Values at exactly 50% here, but in general, men and women decide to be separate at different rates.
+# 5. Men may be less likely to remarry after their partner dies, relative to women.
+# 6. Men may be less likely to never marry, relative to women. 
 ```
 
 #### 7) Come up with your own alternatives: think about some possible subset of people and some information we have about them and see if you can write code to capture that information. 
 ```{r tidy = FALSE}
 
+incomeImmWv <- wv %>%
+  filter(Immigrant == 2) %>%
+  group_by(country) %>%
+  drop_na() %>%
+  dplyr::summarize(meanIncome = mean(Income),
+                   .groups = "drop")
+
+head(arrange(incomeImmWv, desc(meanIncome)), 10)
+
+# The graph indicates top 10 countries of immigrant people with the largest income differences. 
 ```
 
