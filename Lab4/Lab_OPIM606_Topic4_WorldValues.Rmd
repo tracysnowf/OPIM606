@@ -12,7 +12,7 @@ library(tidyverse)
 library(knitr)
 
 # As needed, set path to folder where data is located.
-opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM601-BA/Lab4")
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/Lab4")
 ```
 
 #### 1) Load the World Values Survey data you used in Lab 3, merge it with the country code/name data and add a variable named "regimeType" that equals "Democracy" when polity >= 6, "Autocracy" when polity <= -6, "NA" when polity is missing and "Authoritarian" otherwise.
@@ -25,39 +25,131 @@ See Lab 1 for more details on the variables.
 ```{r tidy = FALSE}
 
 
+countrycode= read_csv("Country codes for WVS wave 7.csv")
+wv7= read_csv("WV7_small.csv")
+
+wv = right_join(countrycode,wv7, by = c("V2"= "B_COUNTRY"))
+
+
+wv$regimeType = case_when(wv$polity >=6 ~"Democracy",
+                          wv$polity <= -6 ~ "Autocracy",
+                          is.na(wv$polity)~ "NA",
+                          wv$polity %in% c(-5:5) ~ "Authoritarian")
+
+
 ```
 
 #### 2) Create a data frame that has average life satisfaction by country and also GDP per capita, regime type and polity score.  Filter this data to exclude countries for which we do not have polity scores.
 
 ```{r tidy = FALSE}
+wvc = wv %>% filter(!is.na(wv$polity))
+
+df<- wvc %>%
+  group_by(country) %>%
+  summarize(avgsat = mean(Satisfied, na.rm = TRUE), avggdp= mean(GDPpercap, na.rm = TRUE), avgpol= mean(polity))
+
+
+df$regimeType = case_when(df$avgpol >=6 ~"Democracy",
+                          df$avgpol<= -6 ~ "Autocracy",
+                          df$avgpol %in% c(-5:5) ~ "Authoritarian")
+
+print(df)
+
 ```
 #### 3) Create a scatter plot with polity scores (which are a measure of how democratic a country is) on the x-axis and and the life satisfaction by country variable you created above on the y-axis
 
 ```{r tidy = FALSE, dpi=600, out.width="100%"}
+
+df %>%  ggplot(aes(x = avgpol, y = avgsat)) +
+  geom_point()
+
 ```
 
 #### 4) Create boxplot with polity scores as categories and average satisfaction by country as the outcome of interest.  Use a theme and a color.
 ```{r tidy = FALSE}
+
+df %>%  ggplot(aes(x = factor(avgpol),            
+                    y = avgsat)) +  
+  geom_boxplot(alpha = 0.2,                
+            color = "steelblue")  +
+  theme(plot.background = element_rect(fill = "steelblue"))
+
 ```
 
 #### 5) Use facet wrap function to separate by regime type
 ```{r tidy = FALSE}
+
+df %>%  ggplot(aes(x = factor(avgpol),            
+                    y = avgsat, 
+                   fill = regimeType)) +  
+  geom_boxplot(alpha = 0.2,                
+            color = "steelblue")  +
+ facet_wrap(~df$regimeType,scales="free_x")
+
 ```
 
 #### 6) Add title, subtitle, caption and improve axis labels
 ```{r tidy = FALSE}
+
+df %>%  ggplot(aes(x = factor(avgpol),            
+                    y = avgsat,
+                   fill = regimeType)) +  
+  geom_boxplot(alpha = 0.2,                
+            color = "steelblue")  +
+ facet_wrap(~df$regimeType,scales="free_x") +
+
+labs(x="Average Polity Score",       
+    y="Average Satifaction",
+    title="Average Satifaction in different Regime type",       
+    subtitle="Data from 44 countries",       
+    caption = "Source: World Values 7")
+
+
 ```
 
 
 #### 7) Now let's go back to the World Values Survey data. Limit the data to three countries in the WVS data of your choice.  Also remove observations that are missing for income or life satisfaction. Create a basic scatter plot of individual-level life-satisfaction (on the y-axis) and individual-level income (on the x-axis).
 ```{r tidy = FALSE}
+
+selcc = c(344, 566, 484)
+selname = unique(wv %>% 
+                   filter(V2 %in% selcc) %>%
+                   dplyr::select(country))$country
+
+wv1 = wv %>%
+  filter(country %in% selname) %>%
+  filter(!is.na(Income)) %>%
+  filter(!is.na(Satisfied))
+
+plot( Satisfied~ Income , data = wv1,
+     pch = 19,    
+     col = "steelblue",      
+     cex = 2)
+
 ```
 
 
 #### 8) Ok, that didn't work and is not very useful. Create a scatterplot with jittered data (where individual level income is on the x-axis and individual level satisfaction is on the y-axis).
 ```{r tidy = FALSE}
+wv1 %>%  ggplot(aes(x = factor(Income),              
+                    y =Satisfied )) +  
+  geom_jitter(alpha=.2,color="steelblue")
+
+
 ```
 
 #### 9) Scatter plot by country. Add title, subtitle, captions, axis labels etc in form that you find aesthetically pleasing. 
 ```{r tidy = FALSE}
+
+wv1 %>%  ggplot(aes(x = factor(Income),              
+                    y =Satisfied
+                    )) +  
+  geom_jitter(alpha=.2,color="steelblue") +
+  facet_wrap(~wv1$country,scales="free_x") +
+  labs(x="Income",       
+    y=" Satifaction", 
+    title="Satifaction rate among income by country",       
+    subtitle="Data from HK,MX, and NRA",       
+    caption = "Source: World Values 7")
+
 ```
