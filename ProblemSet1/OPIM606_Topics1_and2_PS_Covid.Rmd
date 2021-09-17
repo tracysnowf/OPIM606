@@ -126,6 +126,7 @@ c <- c %>%
 
 ```{r tidy = FALSE}
 
+# init a result df
 dfMaxLevelDeath <- data.frame(Deaths = integer(), State = character(), Week = character())
 cByState <- dplyr::arrange(c, state)
 i = 1

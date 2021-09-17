@@ -1,0 +1,63 @@
+---
+title: "Topic 4 Lab"
+output: html_document
+author: Xue (Tracy) Feng
+---
+
+#### Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(tidyverse)
+library(knitr)
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM601-BA/Lab4")
+```
+
+#### 1) Load the World Values Survey data you used in Lab 3, merge it with the country code/name data and add a variable named "regimeType" that equals "Democracy" when polity >= 6, "Autocracy" when polity <= -6, "NA" when polity is missing and "Authoritarian" otherwise.
+
+The codebook for the World Values Survey data is available at 
+http://www.worldvaluessurvey.org/WVSDocumentationWV7.jsp
+
+See Lab 1 for more details on the variables.
+
+```{r tidy = FALSE}
+
+
+```
+
+#### 2) Create a data frame that has average life satisfaction by country and also GDP per capita, regime type and polity score.  Filter this data to exclude countries for which we do not have polity scores.
+
+```{r tidy = FALSE}
+```
+#### 3) Create a scatter plot with polity scores (which are a measure of how democratic a country is) on the x-axis and and the life satisfaction by country variable you created above on the y-axis
+
+```{r tidy = FALSE, dpi=600, out.width="100%"}
+```
+
+#### 4) Create boxplot with polity scores as categories and average satisfaction by country as the outcome of interest.  Use a theme and a color.
+```{r tidy = FALSE}
+```
+
+#### 5) Use facet wrap function to separate by regime type
+```{r tidy = FALSE}
+```
+
+#### 6) Add title, subtitle, caption and improve axis labels
+```{r tidy = FALSE}
+```
+
+
+#### 7) Now let's go back to the World Values Survey data. Limit the data to three countries in the WVS data of your choice.  Also remove observations that are missing for income or life satisfaction. Create a basic scatter plot of individual-level life-satisfaction (on the y-axis) and individual-level income (on the x-axis).
+```{r tidy = FALSE}
+```
+
+
+#### 8) Ok, that didn't work and is not very useful. Create a scatterplot with jittered data (where individual level income is on the x-axis and individual level satisfaction is on the y-axis).
+```{r tidy = FALSE}
+```
+
+#### 9) Scatter plot by country. Add title, subtitle, captions, axis labels etc in form that you find aesthetically pleasing. 
+```{r tidy = FALSE}
+```

@@ -26,8 +26,6 @@ See Lab 1 for more details on the variables.
 cc = read_csv("Country codes for WVS wave 7.csv")
 wv_original = read_csv("WV7_small.csv")
 
-head(cc)
-head(wv_original)
 ```
 
 #### 2) Join the country name from the CountryCode data to the World Values data.  The country code is *V2* in CountryCode and *B_Country* in the World Values data.  Create two data objects of the countries in and not in the World Values data. Display the first 10 countries for each list.
@@ -121,7 +119,7 @@ maritalWv <- wv %>%
   summarize(malePct = 100*mean(Male),
                               .groups = "drop")
 
-# test: United States
+# test: United States (result after dropped NA)
 maritalWv %>%
   filter(country == "United States")
 

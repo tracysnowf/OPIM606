@@ -314,7 +314,8 @@ c &lt;- c %&gt;%
 </div>
 <div id="create-a-loop-that-produces-a-data-frame-that-contains-the-max-level-of-deaths-by-state-and-the-week-in-which-that-happened.-if-a-state-had-multiple-weeks-with-the-same-max-value-of-deaths-use-only-the-first-week.-the-number-of-rows-of-this-data-frame-will-be-the-number-of-states.-display-the-first-five-rows-of-this-data-frame." class="section level4">
 <h4>6) Create a loop that produces a data frame that contains the max level of deaths by state and the week in which that happened. (If a state had multiple weeks with the same max-value of deaths, use only the first week.) The number of rows of this data frame will be the number of states. Display the first five rows of this data frame.</h4>
-<pre class="r"><code>dfMaxLevelDeath &lt;- data.frame(Deaths = integer(), State = character(), Week = character())
+<pre class="r"><code># init a result df
+dfMaxLevelDeath &lt;- data.frame(Deaths = integer(), State = character(), Week = character())
 cByState &lt;- dplyr::arrange(c, state)
 i = 1
 while (i &lt; NROW(cByState)) {
