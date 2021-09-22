@@ -161,7 +161,7 @@ ggplot(m, aes(x = popDensity, y = deathsPer10k)) +
   labs(
     x = "Population Density",
     y = "Deaths Per 10k People",
-    title = "U.S. Covid Deaths Per 10,000 People Against Density \n",
+    title = "2020 U.S. Covid Deaths Per 10,000 People Against Density \n",
     caption = "\n Source: World Values Survey Wave 7 (2017-2020)",
   ) +
   geom_label_repel(
@@ -189,7 +189,7 @@ ggplot(m, aes(x = popDensity, y = casesPer10k, color = Party)) +
   labs(
     x = "Population Density",
     y = "Cases Per 10k People",
-    title = "U.S. Covid Cases Per 10,000 People Against Density by Party \n",
+    title = "2020 U.S. Covid Cases Per 10,000 People Against Density by Party \n",
     caption = "\n Source: World Values Survey Wave 7 (2017-2020)",
   ) +
   geom_label_repel(
@@ -198,7 +198,9 @@ ggplot(m, aes(x = popDensity, y = casesPer10k, color = Party)) +
     nudge_y = 1,
     max.overlaps = getOption("ggrepel.max.overlaps", default = Inf)
   ) +
-  theme_classic(base_size = 10)
+  theme_classic(base_size = 10) +
+  theme(legend.position = "bottom")
+
 
 ```
 
@@ -213,7 +215,7 @@ ggplot(m, aes(x = AveStatePolicy, y = TotalCases, color = Party)) +
   labs(
     x = "Average State Policy",
     y = "Total Cases",
-    title = "U.S. Covid Cases Per 10,000 People Against Density by Party \n",
+    title = "2020 U.S. Covid Cases Per 10,000 People Against Density by Party \n",
     caption = "\n Source: World Values Survey Wave 7 (2017-2020)",
   ) +
   geom_label_repel(
@@ -222,7 +224,8 @@ ggplot(m, aes(x = AveStatePolicy, y = TotalCases, color = Party)) +
     nudge_y = 1,
     max.overlaps = getOption("ggrepel.max.overlaps", default = Inf)
   ) +
-  theme_classic(base_size = 10)
+  theme_classic(base_size = 10) +
+  theme(legend.position = "bottom")
 
 ```
 
@@ -236,21 +239,22 @@ For example, merge data on hospitalizations from the Covid Tracking Project and 
 
 ```{r tidy = FALSE}
 
-ggplot(m, aes(x = AveStatePolicy, y = TotalCases, color = Party)) +
-  scale_color_manual(values = c("turquoise4", "orangered3")) +
-  geom_point(size = 1) +
+# Cases Trend over time by State
+twoStates <- c %>%
+  select(Date, stAbbrev, CasesPerDay) %>%
+  filter(stAbbrev %in% c("CA", "NY")) %>%
+  transform(Date = as.Date(as.character(Date), "%Y%m%d"))
+
+ggplot(twoStates, aes(x = Date, y = CasesPerDay, color = stAbbrev)) +
+  geom_smooth(formula = y ~ x, se = FALSE) +
   labs(
-    x = "Average State Policy",
+    x = "Time",
     y = "Total Cases",
-    title = "U.S. Covid Cases Per 10,000 People Against Density by Party \n",
+    title = "2020 U.S. Covid Cases Trend over time by State \n",
     caption = "\n Source: World Values Survey Wave 7 (2017-2020)",
   ) +
-  geom_label_repel(
-    size = 1.8,
-    aes(label = stateAbbr),
-    nudge_y = 1,
-    max.overlaps = getOption("ggrepel.max.overlaps", default = Inf)
-  ) +
-  theme_classic(base_size = 10)
+  theme_classic(base_size = 10) +
+  theme(legend.position = "bottom")
+
 
 ```
