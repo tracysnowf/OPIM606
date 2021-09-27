@@ -1,7 +1,7 @@
 ---
 title: "Topics 3 and 4 problem set"
 output: html_document
-author: Insert Your Name Here
+author: Xue (Tracy) Feng
 ---
 
 ## Preparation
@@ -33,7 +33,9 @@ s_original <- read_excel("USstates.xlsx", sheet = 1)
 
 # filter data as required
 c <- c_original %>%
-  filter(CountryName == "United States") %>%
+  filter(CountryName == "United States" &
+           RegionName != "" &
+           RegionName != "Virgin Islands") %>%
   select(
     RegionName,
     RegionCode,
@@ -47,9 +49,6 @@ c <- c_original %>%
     pattern = "US_",
     replacement = ""
   ))
-
-head(c)
-head(s_original)
 
 ```
 
@@ -70,37 +69,32 @@ Display the top 3 states.
 
 ```{r tidy = FALSE}
 
-c <- c %>%
-  # create 2 new columns: # death per day, # cases per day
-  mutate(DeathsPerDay = diff(c(0, ConfirmedDeaths))) %>%
-  mutate(CasesPerDay = diff(c(0, ConfirmedCases)))
-
 getDataByDate <- function(startDate, endDate) {
-
   res = data.frame()
-  regionNames <- unique(c$RegionName)
-  regionNames <- regionNames[2:length(regionNames)]
-
-  for(name in regionNames) {
+  regionNames <- unique(c$stAbbrev)
+  
+  for (name in regionNames) {
     curDf <- c %>%
-      filter(RegionName == name) %>%
+      filter(stAbbrev == name) %>%
       filter(Date >= startDate) %>%
       filter(Date <= endDate) %>%
-      dplyr::summarise(state = name,
-                       AveStatePolicy = mean(GovernmentResponseIndex, na.rm = TRUE),
-                       TotalDeaths = sum(DeathsPerDay[DeathsPerDay > 0], na.rm = TRUE),
-                       TotalCases = sum(CasesPerDay[CasesPerDay > 0], na.rm = TRUE),
-                       .groups = 'drop')
+      dplyr::summarise(
+        stateAbbr = name,
+        AveStatePolicy = mean(GovernmentResponseIndex, na.rm = TRUE),
+        TotalDeaths = max(ConfirmedDeaths, na.rm = TRUE) - min(ConfirmedDeaths, na.rm = TRUE),
+        TotalCases = max(ConfirmedCases, na.rm = TRUE) - min(ConfirmedCases, na.rm = TRUE),
+        .groups = 'drop'
+      )
     res <- rbind(res, curDf)
   }
   return(res)
 }
 
 res <- getDataByDate(20201101, 20201115)
-res
+
 res %>%
   arrange(desc(TotalDeaths)) %>%
-  select(state) %>%
+  select(stateAbbr) %>%
   head(3)
 
 ```
@@ -113,25 +107,18 @@ Show the first three variables of the first three lines of this data frame.
 
 ```{r tidy = FALSE}
 
-dfByDate <- getDataByDate(-Inf, Inf)
+m <- res %>%
+  left_join(s_original, by = "stateAbbr") %>%
+  # variable 1 - deaths per 10k people
+  mutate(
+    deathsPer10k = TotalDeaths / pop2019 * 10000,
+    # variable 2 - cases per 10k people
+    casesPer10k = TotalCases / pop2019 * 10000,
+    # variable 3 - population density = # people / land area
+    popDensity = pop2019 / sqMiles
+  )
 
-# merge dfByDate and USstates
-m <- merge(dfByDate, s_original, by = c("state"))
-
-# variable 1 - deaths per 10k people
-m <- m %>%
-  mutate(deathsPer10k = as.integer(TotalDeaths / pop2019 * 10000))
-
-# variable 2 - cases per 10k people
-m <- m %>%
-  mutate(casesPer10k = as.integer(TotalCases / pop2019 * 10000))
-
-# variable 3 - population density = # people / land area
-m <- m %>%
-  mutate(popDensity = pop2019 / sqMiles)
-
-head(m)
-head(m[ ,1:3], 3)
+head(m[, 1:3], 3)
 
 ```
 
@@ -148,7 +135,11 @@ Use code from lecture or explore other ways to make the figure look better.
 
 ```{r tidy = FALSE}
 
-ggplot(m, aes(x = popDensity, y = deathsPer10k)) +
+# remove DC as an outlier
+mNoDC <- m %>%
+  filter(stateAbbr != "DC")
+
+ggplot(mNoDC, aes(x = popDensity, y = deathsPer10k)) +
   geom_point(size = 1,
              color = "sienna4",
              alpha = 0.5) +
@@ -183,7 +174,8 @@ Remove an outlier if you think that is helpful.
 
 ```{r tidy = FALSE}
 
-ggplot(m, aes(x = popDensity, y = casesPer10k, color = Party)) +
+# removed DC as an outlier
+ggplot(mNoDC, aes(x = popDensity, y = casesPer10k, color = Party)) +
   scale_color_manual(values = c("turquoise4", "orangered3")) +
   geom_point(size = 1) +
   labs(
@@ -200,7 +192,6 @@ ggplot(m, aes(x = popDensity, y = casesPer10k, color = Party)) +
   ) +
   theme_classic(base_size = 10) +
   theme(legend.position = "bottom")
-
 
 ```
 
@@ -237,7 +228,12 @@ For example, change the dates and see what happens to the plots.
 
 For example, merge data on hospitalizations from the Covid Tracking Project and do similar analysis as what we have done above.
 
+
 ```{r tidy = FALSE}
+
+c <- c %>%
+  # create a new columns: # cases per day
+  mutate(CasesPerDay = diff(c(0, ConfirmedCases)))
 
 # Cases Trend over time by State
 twoStates <- c %>%
@@ -255,6 +251,5 @@ ggplot(twoStates, aes(x = Date, y = CasesPerDay, color = stAbbrev)) +
   ) +
   theme_classic(base_size = 10) +
   theme(legend.position = "bottom")
-
 
 ```
