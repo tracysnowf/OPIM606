@@ -1,0 +1,71 @@
+---
+title: "Topic 6 Lab"
+output: html_document
+author: Insert Your Name Here
+---
+
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(tidyverse)
+library(knitr)
+
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/baileyma/Dropbox/Teaching_drop/OPIM606")
+```
+The data is saved in a .RData file called Ch13_Lab_GasPrices.RData. When you load this file, you will have a data frame called "dta" that contains the following variables.
+
+Data description:
+
+Variable  | 	Description
+------------- | -------------
+year	| Year
+month	| Month
+time	| Time identifier (1 for first observation, etc)
+lttrucksales 	| Retail sales of light weight trucks in the U.S. (in thousands)
+gasreal	| Real price of gas
+unem	| Unemployment rate
+logPop 	| Log of U.S. population (in thousands) 
+
+```{r echo = FALSE}
+
+```
+
+
+### (a) Estimate a model with the light truck sales as a function of gas prices, unemployment and log of population.  (Don't worry about autocorrelation at this point.)  Is the effect of gas prices statistically significant?
+
+```{r echo = FALSE}
+```
+
+
+### (b) Do you think there is seasonality in truck purchasess?  Test by adding dummy variables for each month to the above model. Is there evidence of monthly variation?  Is the effect of gas statistically significant?  Why does the coefficient change?
+
+```{r}
+```
+
+### (c) Some might argue that purchases in December might be less sensitive to gas prices as they may be holiday gifts.  Assess whether this is true.
+
+```{r}
+
+```
+
+
+### (d) Briefly explain why there might be autocorrelation.
+
+### (e) Create a figure that is useful to assess whether there is autocorrelation (you have two choices here).  Draw a sketch here.
+
+```{r}
+
+```
+
+
+### (f) Estimate a model that adjusts for autocorrelation.  Use the same variables as in part (b).  Describe similarities and difference with earlier results.
+
+```{r}
+
+```
+
+
+### BONUS: Conduct the same analysis using miles driven (_vehiclemilesmonthlynotadj_) as the dependent variable.

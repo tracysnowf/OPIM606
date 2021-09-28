@@ -1,0 +1,81 @@
+---
+title: "Topic 5 Problem Set"
+output: html_document
+author: Xue (Tracy) Feng
+---
+
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(tidytext)
+library("sentimentr")
+library(knitr)
+
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/ProblemSet3")
+```
+
+The `sentimentr` package includes several text data sets.  For this exercise use the "hotel_reviews" data.  This data set contains 5,000 hotel reviews scraped from TripAdvisor.  It also contains a sentiment score for each review, a score produced via automated sentiment analysis.
+
+Access this data by installing the `sentimentr` package, then loading it via `library(sentiment)` and (for convenience) creating a named data object (e.g., `rev = sentimentr::hotel_reviews`).
+
+```{r echo = FALSE}
+rev =sentimentr::hotel_reviews
+h <- read_csv("Reviews_problem_set.csv")
+head(h)
+```
+
+
+#### (a) Calculate the following:
+#### The number of reviews that include the terms "price" or "value"
+#### The number of reviews that include the terms "clean" or "neat" or "dirty" or "gross"
+
+```{r echo = TRUE}
+
+```
+
+
+#### (b) Some of the reviews include superfluous text in the form of "showReview(1132073, 'full);", (the specific number is different across reviews).  Remove this phrase from all the reviews.
+
+```{r echo = TRUE}
+```
+
+
+#### (c) The reviews have been analyzed for sentiment (the "sentiment" variable in the data set). Show a table that shows distribution of sentiment variable. Look at example text for the most negative and second most negative categories and discuss implications.
+
+
+```{r}
+```
+
+
+#### (d) Calculate the proportion of reviews with sentiment = -1.5 that referenced our cleanliness terms above. 
+
+```{r}
+```
+
+
+#### (e) Create a word count for the negative sentiment reviews (those coded as sentiment equal to -1.5).  Show the most common words.
+```{r message = FALSE}
+```
+
+#### (f) Show a word cloud for the negative sentiment reviews (those coded as sentiment equal to -1.5) with stopwords removed.
+```{r message = FALSE}
+```
+
+#### (g) Show a word cloud for the positive sentiment reviews (those coded as sentiment equal to 2.5) with stopwords removed.
+
+#### Since _hotel_ is not particularly informative, delete it as a stop word.  (Use `anti_join(rbind("hotel", tidytext::stop_words))` at the stop words stage.)
+
+```{r message = FALSE}
+```
+
+#### (h) We are interested in finding words that are most distinctive in each sentiment group.
+
+#### We're going to need to do some more cleaning.  First, we need to filter out the reviews coded as -2.5 sentiment as these are not real reviews.
+
+#### Second, we're going to count the words, grouped by sentiment.  To do this, use `count(sentiment, word, sort = TRUE)` which will count the word usage broken into sentiment categories.  Display the top 25 terms sorted by tf-idf in descending order.
+
+
+```{r message = FALSE}
+```
+
