@@ -1,0 +1,228 @@
+---
+title: "Topic 5 Lab"
+output: html_document
+author: Xue (Tracy) Feng
+---
+
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(tidyverse)
+library(knitr)
+library(tidytext)
+# library(tm.plugin.webmining)
+# library(purrr)
+library("sentimentr")
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/Lab5")
+```
+
+
+The `sentimentr` package includes several text data sets.  For this exercise use the "Crowdflower" data.  This data set contains 8,937 tweets about products.  It also contains a sentiment score for each tweet, a score produced via automated sentiment analysis.
+
+Access this data by installing the `sentimentr` package, then loading it via `library(sentiment)` and (for convenience) creating a named data object (e.g., `rev = sentimentr::crowdflower_products`).
+
+```{r echo = FALSE}
+rev = sentimentr::crowdflower_products
+```
+
+
+### (a) Calculate the number of tweets that include the terms "Apple" or "Android"
+
+```{r echo = TRUE}
+
+value = str_detect(rev$text, pattern = "Apple|Android")
+sum(value, na.rm = TRUE)
+
+```
+
+
+### (b) In cleaning the data, links were cut and a placeholder was inserted ("{link}"). Mentions were replaced with "@mention".  Remove these terms from the dataset.
+
+```{r echo = TRUE}
+
+rev2 = rev %>%
+  mutate(text = str_remove_all(text, "\\{\\w+\\}")) %>%
+  mutate(text = str_remove_all(text, "@mention"))
+
+# gg contains row numbers for all lines with the phrase
+gg = str_which(rev$text, pattern = "\\{")
+# first line of the original text
+rev[gg[1],]
+
+# first line of the updated text
+rev2[gg[1],]
+
+```
+
+
+### (c) The tweets have been analyzed for sentiment (the "sentiment" variable in the data set). Create a function that calculates the proportion of tweets that mention a given term that are positive (sentiment equals 1) . Implement this function for the words "Apple", "Android" and "Google"
+
+```{r}
+
+getPosProportion = function (word) {
+  # count of tweet that contains the word
+  ttCount <- rev2 %>%
+    filter(str_detect(text, pattern = word)) %>%
+    count()
+  
+  # count of tweet that contains the word && positive
+  ttPosCount <- rev2 %>%
+    filter(str_detect(text, pattern = word)) %>%
+    filter(sentiment == 1) %>%
+    count()
+  
+  return(ttPosCount / ttCount)
+}
+
+res <-
+  data.frame(
+    getPosProportion("Apple"),
+    getPosProportion("Android"),
+    getPosProportion("Google")
+  )
+colnames(res) <- c('Apple', 'Android', 'Google')
+print(res)
+
+```
+
+
+### (d) Create a word count for the negative sentiment tweets (those coded as sentiment equal to -1.0).  Show the most common words.
+```{r message= FALSE}
+
+negWordCount <- rev2 %>%
+  filter(sentiment == -1) %>%
+  unnest_tokens(word, text) %>%
+  count(word, sort = TRUE)
+
+head(negWordCount, 10)
+
+```
+
+### (e) Create a word count for the negative sentiment tweets (those coded as sentiment equal to -1.0) with stop words removed.  Show the most common words.
+#### Since _quot_ is not particularly informative, delete it as a stop word.  (Use `anti_join(rbind("quot", tidytext::stop_words))` at the stop words stage.)
+
+```{r message= FALSE}
+
+negStopWord <- rev2 %>%
+  filter(sentiment == -1) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(rbind("quot", tidytext::stop_words)) %>%
+  count(word, sort = T)
+
+head(negStopWord, 10)
+
+```
+
+### (f) Show a word cloud for the negative sentiment tweets (those coded as sentiment equal to -1.0) with stopwords removed.
+
+
+```{r message= FALSE}
+ 
+negStopWord %>%
+  with(wordcloud::wordcloud(word, n, max.words = 40))
+
+```
+
+### (g) Show a word cloud for the positive sentiment tweets (those coded as sentiment equal to 1.0) with stopwords removed.
+
+```{r message= FALSE}
+
+posStopWord <- rev2 %>%
+  filter(sentiment == 1) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(rbind("quot", tidytext::stop_words)) %>%
+  count(word, sort = T) %>%
+  with(wordcloud::wordcloud(word, n, max.words = 40))
+  
+
+```
+
+### (h) We are interested in finding words that are most distinctive in each sentiment group among tweets mentioning Apple.
+
+#### We're going to count the words, grouped by sentiment.  To do this, use `count(sentiment, word, sort = TRUE)` which will count the word usage broken into sentiment categories.  Display the top 25 terms sorted by tf-idf in descending order.
+
+
+```{r message= FALSE}
+
+# Word count by sentiment
+Tweet_Words <- rev2 %>%
+  # Get all tweets mentioning Apple using filter()
+  filter(str_detect(text, pattern = "Apple")) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(rbind("quot", tidytext::stop_words)) %>%
+  count(sentiment, word, sort = TRUE)
+
+# Total words by sentiment
+Total_Words <- Tweet_Words %>%
+  group_by(sentiment) %>%
+  summarize(total = sum(n),
+            .groups = 'drop')
+
+# Join word count and total words
+Tweet_Words <-
+  left_join(Tweet_Words,
+            Total_Words)
+
+# show fist 15 rows
+Tweet_Words[1:15]
+
+# Apply tf-idf function to
+Tweet_Words <- Tweet_Words %>%
+  bind_tf_idf(word, sentiment, n)
+
+# Display the top 25 terms sorted by tf-idf in descending order
+Tweet_Words %>%
+  select(-total) %>%
+  arrange(desc(tf_idf)) %>%
+  slice(1:25)
+
+# Visualize using ggplot
+Tweet_Words %>% 
+  arrange(desc(tf_idf)) %>% 
+  mutate(word=factor(word,
+                     levels = rev(unique(word)))) %>% 
+  group_by(sentiment) %>% 
+  top_n(6) %>% 
+  ungroup() %>% 
+ggplot(aes(word,tf_idf, fill = sentiment))+
+  geom_col(show.legend = FALSE)+
+  labs(x=NULL,y="tf-idf")+
+  facet_wrap(~sentiment,scales = "free_y")+
+  coord_flip()
+```
+
+### BONUS: find most common bigrams
+```{r message= FALSE}
+
+# Tokenization (bigrams)
+rev2 %>%
+  unnest_tokens(word,
+                text,
+                token = "ngrams",
+                n = 2)
+
+# Count the frequency of bigrams
+Bigrams_Count <-  rev2 %>%
+  unnest_tokens(word, text,
+                # set argument to bigrams
+                token = "ngrams",
+                n = 2) %>%
+  count(word, sort = TRUE)
+
+# Show the most common bigrams
+head(Bigrams_Count)
+
+# Visualize the most common bigrams
+Bigrams_Count %>%
+  filter(n > 400) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = word)) +
+  geom_col() +
+  xlab(NULL)+
+  coord_flip()+
+  theme(legend.position="none")
+
+```
