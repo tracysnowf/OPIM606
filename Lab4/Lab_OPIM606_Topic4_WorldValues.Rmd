@@ -24,7 +24,6 @@ See Lab 1 for more details on the variables.
 
 ```{r tidy = FALSE}
 
-
 countrycode = read_csv("Country codes for WVS wave 7.csv")
 wv7 = read_csv("WV7_small.csv")
 
