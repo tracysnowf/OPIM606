@@ -1,7 +1,7 @@
 ---
 title: "Topic 6 Lab"
 output: html_document
-author: Insert Your Name Here
+author: Xue (Tracy) Feng
 ---
 
 ## Preparation
@@ -10,10 +10,11 @@ author: Insert Your Name Here
 # Load packages used in this session of R
 library(tidyverse)
 library(knitr)
-
+library(orcutt)
+library(stargazer)
 
 # As needed, set path to folder where data is located.
-opts_knit$set(root.dir = "C:/Users/baileyma/Dropbox/Teaching_drop/OPIM606")
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/Lab6")
 ```
 The data is saved in a .RData file called Ch13_Lab_GasPrices.RData. When you load this file, you will have a data frame called "dta" that contains the following variables.
 
@@ -31,32 +32,65 @@ logPop 	| Log of U.S. population (in thousands)
 
 ```{r echo = FALSE}
 
+#Load the data
+load("Ch13_Lab_GasPrices.RData")
+
+head(dta)
+
 ```
 
 
 ### (a) Estimate a model with the light truck sales as a function of gas prices, unemployment and log of population.  (Don't worry about autocorrelation at this point.)  Is the effect of gas prices statistically significant?
 
 ```{r echo = FALSE}
+
+# Yes, the effect of gas prices is statistically significant
+
+summary(lm(data = dta, lttrucksales ~ gasreal + unem + logPop))
+
 ```
 
 
 ### (b) Do you think there is seasonality in truck purchasess?  Test by adding dummy variables for each month to the above model. Is there evidence of monthly variation?  Is the effect of gas statistically significant?  Why does the coefficient change?
 
 ```{r}
+
+# Yes, there is evidence in month variation based on the coefficient estimates and t-values below. This indicates that there is a strong change of seasonality. Additionally, the effect of gas appears to be statistically significant given the t-value are mostly higher than 2. The coefficient changes based on the month because there is seasonality, and each month can have a different relationship with gas prices.
+
+seasonOLS <-lm(data = dta, lttrucksales ~ gasreal + unem + logPop + factor(month))
+summary(seasonOLS)
+
 ```
 
-### (c) Some might argue that purchases in December might be less sensitive to gas prices as they may be holiday gifts.  Assess whether this is true.
+### (c) Some might argue that purchases in December might be less sensitive to gas prices as they may be holiday gifts. Assess whether this is true.
 
 ```{r}
+
+# December dummy variable
+dta$dec = ifelse(dta$month == 12, 1, 0)
+
+# Less sensitive. Given the t value is below 2, we can conclude that there is no statistical significance for December gas prices. If it were statistically significant the t-value would have been higher (above 2), this would tell us that the gas prices in December have a strong impact on the light truck sales.
+
+salesOLS <- lm(data = dta, lttrucksales ~ gasreal + I(dec*gasreal))
+summary(salesOLS)
 
 ```
 
 
 ### (d) Briefly explain why there might be autocorrelation.
 
+Time series data makes autocorrelation occur. Errors are serially correlated: error in time t+1 is correlated with error in time t. Car purchasing is not an independent event because most people will not buy a car this month if you have already bought a car last month. 
+
 ### (e) Create a figure that is useful to assess whether there is autocorrelation (you have two choices here).  Draw a sketch here.
 
 ```{r}
+
+residuals = resid(salesOLS)
+
+lag_residuals = dplyr::lag(residuals)
+
+plot(dta$time[dta$time > 258], residuals)
+plot(lag_residuals, residuals)
 
 ```
 
@@ -65,7 +99,45 @@ logPop 	| Log of U.S. population (in thousands)
 
 ```{r}
 
+summary(cochrane.orcutt(seasonOLS))
+
+# T values are smaller after adding orcutt function. The regression coefficients are relatively similar. However, the standard errors for the continuous variables are much higher compared to the previous version. The previous version tends to underestimate the standard errors as the result of autocorrelation.
+
+stargazer(seasonOLS, cochrane.orcutt(seasonOLS),
+          type = "text",
+          keep.stat = c("n"),
+          column.labels = c("OLS", "Cochrane-Orcutt", "B"),
+          model.numbers = FALSE,
+          single.row = TRUE,
+          dep.var.caption = "",
+          dep.var.labels.include = FALSE,
+          digits = 2)
+
+```
+
+### BONUS: Conduct the same analysis using miles driven (_vehiclemilesmonthlynotadj_) as the dependent variable.
+
+```{r}
+
+bonus <- lm(vehiclemilesmonthlynotadj ~ gasreal + unem + logPop + factor(month), data = dta)
+summary(bonus)
+
+# Use Cochrane and Orcutt approach to fix autocorrelation
+summary(cochrane.orcutt(bonus))
+
+# Compare with previous results
+stargazer(bonus, cochrane.orcutt(bonus),
+          type = "text",
+          keep.stat = c("n"),
+          column.labels = c("OLS", "Cochrane-Orcutt", "B"),
+          model.numbers = FALSE,
+          single.row = TRUE,
+          dep.var.caption = "",
+          dep.var.labels.include = FALSE,
+          digits = 2)
+
+# The t-values are similar between this model and the model in question b, we do not see much change in these values. However, the standard error reduced when adjusting for autocorrelation which tells us that this is a better model. Again, this validates that there was autocorrelation to begin with, given that the standard error decreased.
+
 ```
 
 
-### BONUS: Conduct the same analysis using miles driven (_vehiclemilesmonthlynotadj_) as the dependent variable.

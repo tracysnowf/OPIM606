@@ -4,14 +4,19 @@ output: html_document
 author: Insert Your Name Here
 ---
 
-```{r setup, include=FALSE}
+## Preparation
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+# Load packages used in this session of R
+library(knitr)
 library(plyr)
 library(tidyverse)
 library(readxl)
 library(lubridate)
 library("orcutt")
-knitr::opts_chunk$set(cache=TRUE,
-                      message=FALSE, warning=FALSE)
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/FinalProject")
 ```
 
 \vspace{0.5 in}
@@ -19,10 +24,6 @@ knitr::opts_chunk$set(cache=TRUE,
 Politics looms large in many parts of American life, including in the financial markets.  The differences in policies and personnel associated with each candidate could affect the profitability of firms in different ways, with stocks potentially rising and falling with the expected outlooks for [Donald Trump](https://www.kiplinger.com/investing/stocks/stocks-to-buy/601637/best-stocks-to-buy-president-donald-trump-re-election) and [Joe Biden](https://www.kiplinger.com/investing/stocks/stocks-to-buy/601691/best-stocks-to-buy-for-the-joe-biden-presidency).
 
 In this assignment, your team will analyze a set of around 30 stocks and indicate which, if any are most exposed to political factors.
-
-You will work in teams of two or three people.  These teams will be sub-units of your assigned teams for the Spring 2021 term.  I will post a proposed team assignment on Canvas.  You may switch teams with mutual agreement of all involved subject to the condition that teams have no fewer than 2 people and no more than 3 people.
-
-**For teams of 2 people**: you will analyze stock prices as a function of a single presidential candidate (Trump or Biden or another in the data set if you so wish). Your page limit is 4 pages.
 
 **For teams of 3 people**: you will create analyze stock prices with two models - one for each of two candidates you select (for example, you could do one model for Trump and one model for Biden). Your page limit is 6 pages.
 
@@ -56,3 +57,15 @@ We will evaluate your project in terms of the following:
 2. Clarity of the explanation
 3. Clarity/visual appeal of the figures
 4. Quality of the R code (including documentation in the .Rmd file)
+
+#### Load the data
+```{r tidy = FALSE}
+
+s = read_csv("stocks2020.csv")
+p = read_excel("USPres_2020_Price History By Market -Bulk.xlsx")
+
+head(s)
+
+head(p)
+```
+

@@ -10,9 +10,7 @@ author: Xue (Tracy) Feng
 library(tidyverse)
 library(tidytext)
 library("sentimentr")
-library(knitr)
-
-opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/ProblemSet3")
+library(wordcloud)
 ```
 
 The `sentimentr` package includes several text data sets.  For this exercise use the "hotel_reviews" data.  This data set contains 5,000 hotel reviews scraped from TripAdvisor.  It also contains a sentiment score for each review, a score produced via automated sentiment analysis.
@@ -20,9 +18,7 @@ The `sentimentr` package includes several text data sets.  For this exercise use
 Access this data by installing the `sentimentr` package, then loading it via `library(sentiment)` and (for convenience) creating a named data object (e.g., `rev = sentimentr::hotel_reviews`).
 
 ```{r echo = FALSE}
-rev =sentimentr::hotel_reviews
-h <- read_csv("Reviews_problem_set.csv")
-head(h)
+rev = sentimentr::hotel_reviews
 ```
 
 
@@ -32,12 +28,30 @@ head(h)
 
 ```{r echo = TRUE}
 
+# make sure to include all lower and upper cases words
+# rev$textLower <- tolower(rev$text)
+
+sum(str_detect(rev$text, "price|value"))
+
+sum(str_detect(rev$text, "clean|neat|dirty|gross"))
+
 ```
 
 
 #### (b) Some of the reviews include superfluous text in the form of "showReview(1132073, 'full);", (the specific number is different across reviews).  Remove this phrase from all the reviews.
 
 ```{r echo = TRUE}
+
+# lines number that contain the string we want to remove:
+# str_which(rev$text, pattern = "showReview\\(\\d+\\,.+;")
+
+# before removal
+rev$text[4031]
+
+# after removal
+rev$textRm <- str_remove_all(rev$text, "showReview\\(\\d+\\,.+;")
+rev$textRm[4031]
+
 ```
 
 
@@ -45,21 +59,70 @@ head(h)
 
 
 ```{r}
+
+rev %>%
+  group_by(sentiment) %>%
+  summarise(Count = n(),
+            `Percent Sentiment` = n() / nrow(rev) * 100)
+
+# examples for the most negative category (-2.5)
+rev %>%
+  filter(sentiment == -2.5) %>%
+  select(text) %>%
+  head(5)
+
+# examples for the second most negative category (-1.5)
+rev %>%
+  filter(sentiment == -1.5) %>%
+  select(text) %>%
+  head(5)
+
+# implications
+# The most negative sentiment reviews are not even actual reviews of the hotel. Sometimes its just a person with a bad taste in their mouth leaving a negative review and not justifying it with any facts. These are not reliable reviews.
+# The 2nd most negative reviews appear to be more reliable complaints from the hotel guests.
+
 ```
 
 
 #### (d) Calculate the proportion of reviews with sentiment = -1.5 that referenced our cleanliness terms above. 
 
 ```{r}
+
+mean(str_detect(subset(rev, sentiment == -1.5)$text, "clean|neat|dirty|gross")) * 100
+
 ```
 
 
 #### (e) Create a word count for the negative sentiment reviews (those coded as sentiment equal to -1.5).  Show the most common words.
 ```{r message = FALSE}
+
+rev %>%
+  filter(sentiment == -1.5) %>%
+  unnest_tokens(word, text) %>%
+  count(word, sort = T) %>%
+  head()
+
 ```
 
 #### (f) Show a word cloud for the negative sentiment reviews (those coded as sentiment equal to -1.5) with stopwords removed.
 ```{r message = FALSE}
+
+rev %>%
+  filter(sentiment == -1.5) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(tidytext::stop_words, by = "word") %>%
+  filter(!str_detect(word, "\\d")) %>%
+  count(word) %>%
+  with(
+    wordcloud::wordcloud(
+      word,
+      n,
+      max.words = 35,
+      random.order = FALSE,
+      colors = brewer.pal(8, "Dark2")
+    )
+  )
+
 ```
 
 #### (g) Show a word cloud for the positive sentiment reviews (those coded as sentiment equal to 2.5) with stopwords removed.
@@ -67,6 +130,23 @@ head(h)
 #### Since _hotel_ is not particularly informative, delete it as a stop word.  (Use `anti_join(rbind("hotel", tidytext::stop_words))` at the stop words stage.)
 
 ```{r message = FALSE}
+
+rev %>%
+  filter(sentiment == 2.5) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(rbind("hotel", tidytext::stop_words), by = "word") %>%
+  filter(!str_detect(word, "\\d")) %>%
+  count(word) %>%
+  with(
+    wordcloud::wordcloud(
+      word,
+      n,
+      max.words = 35,
+      random.order = FALSE,
+      colors = brewer.pal(8, "Dark2")
+    )
+  )
+
 ```
 
 #### (h) We are interested in finding words that are most distinctive in each sentiment group.
@@ -77,5 +157,19 @@ head(h)
 
 
 ```{r message = FALSE}
+
+rev %>%
+  filter(sentiment != -2.5) %>%
+  unnest_tokens(word, text) %>%
+  # It's unclear in the question whether we should include the word "hotel" or not
+  # anti_join(rbind("hotel", tidytext::stop_words, by = "word")) %>%
+  anti_join(rbind(tidytext::stop_words, by = "word")) %>%
+  count(sentiment, word, sort = TRUE) %>%
+  group_by(sentiment) %>%
+  mutate(total = sum(n)) %>%
+  bind_tf_idf(word, sentiment, n) %>%
+  arrange(-tf_idf) %>%
+  head(25)
+
 ```
 
