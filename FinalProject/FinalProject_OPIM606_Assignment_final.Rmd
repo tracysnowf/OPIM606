@@ -1,0 +1,331 @@
+---
+title: "Stock Report in Relation to Political Factors"
+author: "David Osuch, Xue(Tracy) Feng, Amber Fording"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+```{r, message = FALSE, echo = FALSE}
+# Load packages
+library(knitr)
+library(plyr)
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(ggpubr)
+library(DT)
+
+# As needed, set path to folder where data is located.
+opts_knit$set(root.dir = "C:/Users/Xue Feng/Desktop/OPIM606/FinalProject")
+
+# load data
+s_original <- read_csv("stocks2020.csv")
+p_original <- read_excel("USPres_2020_Price History By Market -Bulk.xlsx")
+```
+
+## Stock Buying Recommendation: _Walmart, Tesla, & Netflix_
+
+Our team studied the effects political factors from two Presidential candidates in 2020 being Donald Trump and Joe Biden relate to thirty-two popular stocks. We utilized the Dow Jones as a benchmark, while considering Industrial outputs for each of the two Candidates. Our analysis proves that Walmart, Tesla, and Netflix would be most _positively_ exposed to political factors.
+
+## Data Processing
+
+__Data Normalization__ - In order to consider each of the thirty stocks on a level playing field, we normalized the stock price data from _stocks2020.csv_ to a scale ranging from 0 to 1. The closer to 1 illustrates a higher stock price within that specific stock. Our Output of the normalized data is shown below:
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+
+normStock <- function(x) {
+  return((x - min(x, na.rm = T)) / (max(x, na.rm = T) - min(x, na.rm = T)))
+}
+
+# a function that normalizes a data frame from i-th to j-th column
+# return: new normalized columns to the original data frame
+normalize <- function(df, i, j) {
+  normS <- as.data.frame(lapply(df[i:j], normStock))
+  colnames(normS) <- paste("norm", colnames(normS), sep = "_")
+  # add the normalized columns to original data
+  df <- cbind(df[1], normS)
+  return(df)
+}
+
+# normalize stocks from col 2 to the last col
+s <- normalize(s_original, 2, ncol(s_original))
+DT::datatable(s, options = list(
+  pageLength = 5,
+  lengthMenu = c(1, 5, 10),
+  searching = FALSE
+))
+
+```
+
+__Data Merging__ - Our teams goal was to compare each of the stocks relationship with the likelihood of each Candidate becoming President. Fortunately, this data is readily available with ability to track each day. As a result, we utilized the 'Close Share Price' as a reference of the Candidate's likelihood of winning in the same data frame as each of the normalized stock price. The below data exhibits the first of each month (or closest to the date when the stock market is open) reflecting the changes in likelihood of each Candidate winning. 
+
+Three data frames we use for analyzing:
+
+1. combined Trump and Biden df ("selectedPs")
+
+2. Trump df ("trump")
+
+3. Biden df ("biden")
+
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+
+# left join president and stock data based on `Date (ET)`
+ps <- left_join(p_original, s, by = c("Date (ET)" = "date"))
+
+# choose 2 candidates: Donald Trump, Joe Biden
+selectedPs <- ps %>%
+  filter(`Contract Name` %in% c("Donald Trump", "Joe Biden")) %>%
+  # filter out only data for 2020
+  filter(`Date (ET)` >= as.Date("2020-01-02"),
+         `Date (ET)` <= as.Date("2020-12-30"))
+
+trump <- selectedPs %>%
+  filter(`Contract Name` == "Donald Trump")
+
+biden <- selectedPs %>%
+  filter(`Contract Name` == "Joe Biden")
+
+```
+
+__Data frame structure for `Trump` looks like:__
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+DT::datatable(trump[c(91,121,152,182,215,244,275,306,336), c(2,4,5,10,13:20)], options = list(
+  pageLength = 5,
+  lengthMenu = c(1, 5, 10),
+  searching = FALSE
+))
+```
+
+__Data frame structure for `Biden` looks like:__
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+
+DT::datatable(  biden[c(91,121,152,182,215,244,275,306,336), c(2,4,5,10,13:20)], options = list(
+  pageLength = 5,
+  lengthMenu = c(1, 5, 10),
+  searching = FALSE
+  
+))
+```
+
+## Regression Models
+
+This forecast was predicted with our three models.
+
+### __Model 1__ 
+
+For the first regression model, we predicted the __Close Share Price__ (Y) by analyzing 32 different __Stock Price__ (X) between our two selected candidates: President __Donald Trump__ and President __Joe Biden__ from the _USPres_2020_Price History By Market -Bulk.xlsx_. We extracted and ranked the three statistical factors: __slope, R-squared, P-value__ from the _summary()_ of _lm()_ function for the both candidates.
+
+_The 32 stocks are: DJI	AAPL	NFLX	AMZN	K	TSLA	LMT	MCD	BAC	NYT	XOM	TWTR	FB	GOOGL	GEO	WMT	ARCH	RSX	MLM	CAT	BDX	BEP	NEE	AY	FSLR	CGC	WKHS	UNH	O	ET	EEM GLDM._
+
+__Data Analysis:__ From the following two tables, we conclude that the overall P-values that are mostly 0 (or typically ≤ 0.05) with a 4 decimals rounding are statistically significant for both candidates, and we expected this result since this provides us a stronger evidence. We also conclude that the slopes and R-squares for President Joe Biden are both higher than those of President Donald Trump. Scaling from 0 - 1, when the absolute value of the R-squared is closer to 1, it means that there is a bigger relationship between stock price and close share price. In other words, more close share price can be predicted by the stock price. A higher slope means with every unit increase in stock price, our close share price is increasing by a larger amount, depending on the different stock we are looking at. 
+
+In an effort to understand the range of outcomes for each stock, we utilized Joe Biden's Statistical Model in _Table a)_ as the starting point with emphasis on Slope and R-Squared. We believe these serve as trend indicators for stock projections as R-Squared describes correlation between Presidential likelihood of winning and stock price, while slope depicts the magnitude of increase or decrease. Below are the stocks with highest indicators for Joe Biden: 
+
+* The top 5 Stocks with Positively Correlated Slope are: __UNH, WMT, BEP, TSLA, NFLX__
+
+* The top 5 Stocks with Highest absolute value of R-Squared are: __GEO, WMT, TSLA, AMZN, NFLX__
+
+From the above 10 results we picked __Walmart, Tesla, and Netflix__ as the three recommended stocks. The reasoning for this is detailed below:
+
+1) We chose Walmart (WMT) because it has the largest slope of 0.72 for Joe Biden's likelihood of winning with 65% correlation. We believe by Walmart entering into large scale shipping, they will offset any negative slope of Donald Trump's likelihood of winning. We do not expect it to be difficult for Walmart to counter the nominal negative slope decrease and 53% correlation, especially as COVID appears to continue into 2021 causing an uptick in shipping.
+
+2) We chose Tesla (TSLA) because of the intense slope of 0.689 for each increase in Joe Biden's likelihood of winning. Tesla has nearly 60% correlation or R-Squared for each candidate, but the down side is -0.38 and upside is 0.62. Since Tesla is a supported US-based Company, we project continued success for Tesla driven by their increase in production in Q3 and Q4. Netflix (NFXL) tells a similar story, therefore we recommend Netflix as well. 
+
+3) We did NOT choose United Health(UNH) because the cause of the rapid increase in stock price is correlated with the start of COVID. This is further proven by the R-Squared value being .37 compared to other stocks with large slopes having larger correlations. 
+
+4) We want to highlight Geo Group (GEO) as this stock is one of the highest potential performers when Donald Trumps likelihood of winning increases, while being negatively correlated to Joe Biden. This is represented by a large slope for Donald Trump and a R-Squared of 0.75 for Joe Biden. For example, when Joe Biden's likelihood of winning decreases, the stock price increases. In order to reduce volatility, we do not recommend purchasing this stock.The same can be said for Brookfield Renewable Partners (BEP).
+
+5) We did NOT choose Amazon (AMZN) since it has a high R-Squared but an OK slope value. We believe the reason for this is Amazon has such a large market share, they are diversified from political effect. 
+
+Therefore, with a good P-value(~0), high R-Squared, and high Slope among all these 32 stocks, excluding the factor we controlled, Walmart, Tesla, Netflix become our recommended purchasing stocks.
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+
+stockNames = colnames(s[grepl("norm_", names(s), fixed = TRUE)])
+# compare R squared, p-value among all 32 stocks for Trump and Biden
+getStats <- function(df) {
+  # create a data frame 32 * 3 to store stock name, p-value and r squared for all 32 stocks
+  result <- data.frame()
+  # each stock price vs predicted close price
+  for (name in stockNames) {
+    stockPrice = unlist(df[name])
+    closeSharePrice = unlist(df["Close Share Price"])
+    ols <- lm(closeSharePrice ~ stockPrice, data = df)
+    c <- round(summary(ols)$coefficients[2, 1], 4)
+    p <- round(summary(ols)$coefficients[2, 4], 4)
+    r <- abs(round(summary(ols)$adj.r.squared, 4))
+    curRes <- data.frame(name, c, p, r)
+    result <- rbind(result, curRes)
+  }
+  colnames(result) <-
+    c("Stock Name", "Slope", "P-Value", "R-Squared")
+  result <- result %>%
+    arrange(-`Slope`)
+  return(result)
+}
+
+```
+
+### __Table a): Statistical Model - Biden Close Share Price and 32 Stock Price__
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+
+DT::datatable(getStats(biden), options = list(
+  pageLength = 5,
+  lengthMenu = c(1, 5, 10),
+  searching = FALSE
+))
+
+```
+
+### __Table b): Statistical Model - Trump Close Share Price and 32 Stock Price__
+```{r tidy = FALSE, echo = FALSE, result = TRUE}
+DT::datatable(getStats(trump), options = list(
+  pageLength = 5,
+  lengthMenu = c(1, 5, 10),
+  searching = FALSE
+))
+```
+
+### __Visualization__ :
+```{r tidy = FALSE, echo = FALSE, result = TRUE, message = FALSE, warning = FALSE}
+
+getStocks <- function(name, fullName) {
+  result <- name %>%
+    ggplot(aes(y = `Close Share Price`)) +
+    geom_smooth(aes(x = `norm_WMT`, color = "WMT")) +
+    geom_smooth(aes(x = `norm_TSLA`, color = "TSLA")) +
+    geom_smooth(aes(x = `norm_NFLX`, color = "NFLX")) +
+    scale_colour_manual(
+      name = "Stocks",
+      values = c(
+        "WMT" = "skyblue3",
+        "TSLA" = "palegreen3",
+        "NFLX" = "chocolate"
+      )
+    ) +
+    labs(x = "Stock Price(Normalized)",
+         y = "Close Share Price",
+         title = fullName,
+         caption = "Source: Stocks 2020 Document") +
+    theme_classic() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      plot.caption = element_text(hjust = 0),
+      axis.text.x = element_text(hjust = 1)
+    )
+}
+
+biden3Stocks <- getStocks(biden, "Joe Biden")
+trump2Stocks <- getStocks(trump, "Donald Trump")
+
+graphs <- ggarrange(biden3Stocks, trump2Stocks, common.legend = TRUE)
+annotate_figure(
+  graphs,
+  top = text_grob(
+    "How 3 Recommended Stock Prices affect Close Share Prices by Candidate",
+    size = 13
+  )
+)
+
+```
+
+### __Model 2__
+
+In this model, we wanted to depict the trends of each Candidate along with the Dow Jones. We recognize this only models the political factors, but in this study we noticed a steep Dow Jones decrease in March and rise in July. We found it interesting that the Dow Jones responded the way it did to the likelihood of each candidate winning. 
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE, message = FALSE, warning = FALSE}
+
+trumpandbiden <-
+  merge(
+    x = trump,
+    y = biden,
+    by.x = "norm_DJI",
+    by.y = "norm_DJI",
+    all.x = TRUE
+  )
+
+# Replace Date and Contract Name columns due to column naming issues
+selectedPs$Date = selectedPs$`Date (ET)`
+selectedPs$Candidate = selectedPs$`Contract Name`
+selectedPs$Close_Share_Price = selectedPs$`Close Share Price`
+
+# Create plot of Date, Avg Dow Jones, And Closing Share Price
+selectedPs %>%
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = Close_Share_Price, color = "Predicted Close Price")) +
+  geom_line(aes(y = norm_DJI, color = "Stock Price (Normalized)")) +
+  scale_colour_manual(
+    name = "Lines",
+    values = c(
+      "Predicted Close Price" = "skyblue3",
+      "Stock Price (Normalized)" = "palegreen3")) +
+  facet_wrap(~ Candidate) +
+  labs(y = "Price Trend",
+       title = "Avg Closing Share Price & Dow Jones Avg by Candidate",
+       legend.title = "Stock Type",
+       caption = "Source: Stocks 2020 Document") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0),
+    axis.text.x = element_text(angle = 50, hjust = 1)
+  )
+
+```
+
+### __Model 3__
+
+In this final model, we want to provide a view of the Dow Jones from April 1st to year end. The reason for April 1st is because that is when it was clear Joe Biden was selected to represent his party, while also the stock market was recovering a bit from the original shock of COVID-19. We look forward to further discussion as we move forward with our recommendations.
+
+```{r tidy = FALSE, echo = FALSE, result = TRUE, message = FALSE, warning = FALSE}
+
+bidenApr2Dec = biden %>%
+  filter(`Date (ET)` >= as.Date("2020-04-01"),
+         `Date (ET)` <= as.Date("2020-12-30"))
+
+trumpApr2Dec = trump %>%
+  filter(`Date (ET)` >= as.Date("2020-04-01"),
+         `Date (ET)` <= as.Date("2020-12-30"))
+
+getDetailedViz <- function(name, fullName) {
+  res <- name %>%
+    ggplot(aes(x = `Date (ET)`)) +
+    geom_smooth(aes(y = `norm_DJI`)) +
+    geom_line(aes(y = `norm_DJI`, color = "Dow Jones Stock Price (Normalized)")) +
+    geom_smooth(aes(y = `Close Share Price`)) +
+    geom_line(aes(y = `Close Share Price`, color = "Predicted Close Price")) +
+    scale_colour_manual(
+      name = "Lines",
+      values = c(
+        "Predicted Close Price" = "skyblue3",
+        "Dow Jones Stock Price (Normalized)" = "palegreen3"
+      )
+    ) +
+    labs(
+      x = "Date",
+      y = "Stock Price",
+      title = fullName,
+      caption = "Source: Stocks 2020 Document"
+    ) +
+    theme_classic() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      plot.caption = element_text(hjust = 0.5),
+      axis.text.x = element_text(angle = 50, hjust = 1),
+      legend.position = "bottom",
+    )
+  return(res)
+}
+
+graphBiden <- getDetailedViz(bidenApr2Dec, "Joe Biden")
+graphTrump <- getDetailedViz(trumpApr2Dec, "Donald Trump")
+
+graphs <- ggarrange(graphBiden, graphTrump, common.legend = TRUE)
+annotate_figure(graphs,
+                top = text_grob("Effect on Dow Jones by Candidate (Study of Post Q1)",
+                                size = 14))
+
+```
